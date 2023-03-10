@@ -1,3 +1,5 @@
+[![CI/CD Pipeline](https://github.com/ECE493-Group11-UEvents/UEvents-API/actions/workflows/Aws_Deploy.yml/badge.svg)](https://github.com/ECE493-Group11-UEvents/UEvents-API/actions/workflows/Aws_Deploy.yml)
+
 # UEvents-API
 
 ## To run locally: 
