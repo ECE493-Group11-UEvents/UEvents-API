@@ -5,22 +5,24 @@ const UserModel = require('../models/user');
 // Handle login requests
 router.get('/:email', async (req, res) => {
 
-  try {
-    // Check if user already exists
-    const user = await UserModel.userExists(username);
-
-    if (user) {
-      return res.status(409).send('user already exists');
+    const email = req.params.email;
+    const password = req.query.password;
+  
+    try {
+      // Verify user's credentials using the UserModel.login function
+      const user = await UserModel.login(email, password);
+  
+      if (user) {
+        // User exists and credentials are valid, return the user object
+        res.send(user);
+      } else {
+        // User does not exist or credentials are invalid, return an error message
+        res.status(401).send('Invalid email or password');
+      }
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Error logging in');
     }
-
-    // Create the user record
-    // const newUser = await UserModel.create(username, email, password);
-    // res.send(newUser);
-    res.send('finished');
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Error creating user');
-  }
 });
 
 

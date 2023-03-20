@@ -4,7 +4,8 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var signupRoute = require('./routes/signup');
-var loginRoute = require('./routes/login')
+var loginRoute = require('./routes/login');
+var changePasswordRoute = require('./routes/change_password');
 
 
 var indexRouter = require('./routes/index');
@@ -25,6 +26,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/signup', signupRoute);
+app.use('/login', loginRoute);
+app.use('/change_password', changePasswordRoute);
 
 
 // catch 404 and forward to error handler
