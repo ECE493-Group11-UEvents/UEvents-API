@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const UserModel = require('../models/user');
 
-// Handle login requests
+// Handle password change requests
 router.put('/:email', async (req, res) => {
 
     const email = req.params.email;
