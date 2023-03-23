@@ -13,6 +13,8 @@ var usersRouter = require('./routes/users');
 
 var app = express();
 
+const API_PREFIX = '/api';
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -23,11 +25,11 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/signup', signupRoute);
-app.use('/login', loginRoute);
-app.use('/change_password', changePasswordRoute);
+app.use(API_PREFIX + '/', indexRouter);
+app.use(API_PREFIX + '/users', usersRouter);
+app.use(API_PREFIX + '/signup', signupRoute);
+app.use(API_PREFIX + '/login', loginRoute);
+app.use(API_PREFIX + '/change_password', changePasswordRoute);
 
 
 // catch 404 and forward to error handler
