@@ -6,12 +6,14 @@ var logger = require('morgan');
 var signupRoute = require('./routes/signup');
 var loginRoute = require('./routes/login');
 var changePasswordRoute = require('./routes/change_password');
-
+const cors = require('cors');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
 var app = express();
+
+app.use(cors())
 
 const API_PREFIX = '/api';
 

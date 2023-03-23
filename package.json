@@ -4,16 +4,16 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "start-dev": "nodemon ./bin/www"
+    "start-dev": "nodemon -r dotenv/config ./bin/www"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.290.0",
     "aws-sdk": "^2.1334.0",
     "bcrypt": "^5.1.0",
     "cookie-parser": "~1.4.4",
+    "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "debug": "~2.6.9",
-    "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "http-errors": "~1.6.3",
     "jstransformer": "^1.0.0",
@@ -21,6 +21,7 @@
     "pug": "^3.0.2"
   },
   "devDependencies": {
+    "dotenv": "^16.0.3",
     "nodemon": "^2.0.21"
   }
 }

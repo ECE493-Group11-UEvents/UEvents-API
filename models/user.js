@@ -1,12 +1,14 @@
 const AWS = require('aws-sdk');
 const bcrypt = require('bcrypt');
-const dotenv = require('dotenv');
-dotenv.config();
+
+console.log(`process.env.DB_ACCESS_KEY: ${process.env.DB_ACCESS_KEY}`)
+console.log(`process.env.DB_SECRET_ACCESS_KEY: ${process.env.DB_SECRET_ACCESS_KEY}`)
+// console.log(`process.env: ${JSON.stringify(process.env)}`)
 
 AWS.config.update({
   region: 'us-east-2',
-  accessKeyId: process.env.ACCESSKEY,
-  secretAccessKey: process.env.SECRETACCESSKEY,
+  accessKeyId: process.env.DB_ACCESS_KEY,
+  secretAccessKey: process.env.DB_SECRET_ACCESS_KEY,
 });
 
 const client = new AWS.DynamoDB();
