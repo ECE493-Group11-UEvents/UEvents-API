@@ -5,10 +5,8 @@ dotenv.config();
 
 AWS.config.update({
   region: 'us-east-2',
-//   accessKeyId: process.env.ACCESSKEY,
-//   secretAccessKey: process.env.SECRETACCESSKEY,
-  accessKeyId: "AKIAUFZO5TBL6OO36AGC",
-  secretAccessKey: "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",
+  accessKeyId: process.env.ACCESSKEY,
+  secretAccessKey: process.env.SECRETACCESSKEY,
 });
 
 const client = new AWS.DynamoDB();
