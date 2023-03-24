@@ -2,7 +2,7 @@ const AWS = require('aws-sdk');
 const bcrypt = require('bcrypt');
 
 AWS.config.update({
-  region: 'us-east-2',
+  region: process.env.REGION,
   accessKeyId: process.env.DB_ACCESS_KEY,
   secretAccessKey: process.env.DB_SECRET_ACCESS_KEY,
 });
@@ -36,7 +36,7 @@ class UserModel {
     }
 
     // creates a user
-    static async create( email,first_name, last_name, password, profile_picture, roles ) {
+    static async create( email,first_name, last_name, password, profile_picture = "", roles = []) {
 
         const salt = await bcrypt.genSalt();
         var hash = await bcrypt.hash(password, salt);
