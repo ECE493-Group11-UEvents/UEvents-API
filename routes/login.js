@@ -3,10 +3,9 @@ const router = express.Router();
 const UserModel = require('../models/user');
 
 // Handle login requests
-router.get('/:email', async (req, res) => {
+router.post('/', async (req, res) => {
 
-    const email = req.params.email;
-    const password = req.query.password;
+    const { email, password } = req.body;
   
     try {
       // Verify user's credentials using the UserModel.login function
