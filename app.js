@@ -6,6 +6,7 @@ var logger = require('morgan');
 var signupRoute = require('./routes/signup');
 var loginRoute = require('./routes/login');
 var changePasswordRoute = require('./routes/change_password');
+const basicAuth = require('./middleware/basicAuth');
 const cors = require('cors');
 
 var indexRouter = require('./routes/index');
@@ -28,10 +29,10 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(API_PREFIX + '/', indexRouter);
-app.use(API_PREFIX + '/users', usersRouter);
+app.use(API_PREFIX + '/users', basicAuth, usersRouter);
 app.use(API_PREFIX + '/signup', signupRoute);
 app.use(API_PREFIX + '/login', loginRoute);
-app.use(API_PREFIX + '/change_password', changePasswordRoute);
+app.use(API_PREFIX + '/change_password', basicAuth, changePasswordRoute);
 
 
 // catch 404 and forward to error handler
