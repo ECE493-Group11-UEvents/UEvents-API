@@ -1,12 +1,10 @@
 const AWS = require('aws-sdk');
 const bcrypt = require('bcrypt');
-const dotenv = require('dotenv');
-dotenv.config();
 
 AWS.config.update({
-    region: process.env.REGION,
-    accessKeyId: process.env.DB_ACCESS_KEY,
-    secretAccessKey: process.env.DB_SECRET_ACCESS_KEY,
+  region: process.env.REGION,
+  accessKeyId: process.env.DB_ACCESS_KEY,
+  secretAccessKey: process.env.DB_SECRET_ACCESS_KEY,
 });
 
 const client = new AWS.DynamoDB();
@@ -38,7 +36,7 @@ class UserModel {
     }
 
     // creates a user
-    static async create( email,first_name, last_name, password, profile_picture, roles ) {
+    static async create( email,first_name, last_name, password, profile_picture = "", roles = []) {
 
         const salt = await bcrypt.genSalt();
         var hash = await bcrypt.hash(password, salt);

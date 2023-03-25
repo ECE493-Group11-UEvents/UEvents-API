@@ -8,12 +8,17 @@ var loginRoute = require('./routes/login');
 var changePasswordRoute = require('./routes/change_password');
 var profileRoute = require('./routes/profile');
 
-
+const basicAuth = require('./middleware/basicAuth');
+const cors = require('cors');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
 var app = express();
+
+app.use(cors())
+
+const API_PREFIX = '/api';
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -25,11 +30,11 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/signup', signupRoute);
-app.use('/login', loginRoute);
-app.use('/change_password', changePasswordRoute);
+app.use(API_PREFIX + '/', indexRouter);
+app.use(API_PREFIX + '/users', basicAuth, usersRouter);
+app.use(API_PREFIX + '/signup', signupRoute);
+app.use(API_PREFIX + '/login', loginRoute);
+app.use(API_PREFIX + '/change_password', basicAuth, changePasswordRoute);
 app.use('/profile', profileRoute);
 
 
