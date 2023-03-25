@@ -4,11 +4,9 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 AWS.config.update({
-  region: 'us-east-2',
-//   accessKeyId: process.env.ACCESSKEY,
-//   secretAccessKey: process.env.SECRETACCESSKEY,
-  accessKeyId: "AKIAUFZO5TBL6OO36AGC",
-  secretAccessKey: "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",
+    region: process.env.REGION,
+    accessKeyId: process.env.DB_ACCESS_KEY,
+    secretAccessKey: process.env.DB_SECRET_ACCESS_KEY,
 });
 
 const client = new AWS.DynamoDB();
@@ -23,7 +21,7 @@ class UserModel {
             TableName: tableName,
             Key: {
                 'email' : {S: email},
-              }
+            }
         }
         try {
             const result = await client.getItem(params).promise();
@@ -120,6 +118,32 @@ class UserModel {
             console.error(err);
             return false;
           }
+    }
+
+    static async profile(email){
+        try {
+            
+            var params = {
+                TableName: tableName,
+                Key: {
+                    'email' : {S: email},
+                },
+                ProjectionExpression: 'email, first_name, last_name, profile_picture',
+            }
+
+            var result_user = await client.getItem(params).promise();
+
+            var result = new Array();
+
+            result.push(result_user);
+
+            return result;
+
+        }
+        catch(err){
+            console.error(err);
+            return null;
+        }
     }
 }
 

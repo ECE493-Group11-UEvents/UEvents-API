@@ -6,6 +6,8 @@ var logger = require('morgan');
 var signupRoute = require('./routes/signup');
 var loginRoute = require('./routes/login');
 var changePasswordRoute = require('./routes/change_password');
+var profileRoute = require('./routes/profile');
+
 
 
 var indexRouter = require('./routes/index');
@@ -28,6 +30,8 @@ app.use('/users', usersRouter);
 app.use('/signup', signupRoute);
 app.use('/login', loginRoute);
 app.use('/change_password', changePasswordRoute);
+app.use('/profile', profileRoute);
+
 
 
 // catch 404 and forward to error handler
