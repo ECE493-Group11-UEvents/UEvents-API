@@ -66,6 +66,10 @@ class EventModel {
             return null;
         }
     }
+
+    static async createEvent(title, description, location, studentGroup, dateTime, email, photo){
+        
+    }
 }
 
 module.exports = EventModel;
