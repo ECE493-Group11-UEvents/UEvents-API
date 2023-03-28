@@ -8,6 +8,8 @@ var loginRoute = require('./routes/login');
 var changePasswordRoute = require('./routes/change_password');
 var profileRoute = require('./routes/profile');
 var eventRoute = require('./routes/events');
+var studentGroupRoute = require('./routes/studentGroups');
+var memberGroupRoute = require('./routes/memberGroups');
 
 const basicAuth = require('./middleware/basicAuth');
 const cors = require('cors');
@@ -38,6 +40,9 @@ app.use(API_PREFIX + '/login', loginRoute);
 app.use(API_PREFIX + '/change_password', basicAuth, changePasswordRoute);
 app.use(API_PREFIX + '/profile', profileRoute);
 app.use(API_PREFIX + '/events', eventRoute);
+app.use(API_PREFIX + '/studentGroups', studentGroupRoute);
+app.use(API_PREFIX + '/memberGroups', memberGroupRoute);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
