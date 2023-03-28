@@ -86,6 +86,16 @@ class EventModel {
         return item;
     }
 
+    static async getAllEvents() {
+        try {
+            const result = await client.scan({ TableName: 'Events' }).promise();
+            return result.Items;
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    }
+
     /**
      * Helper function for getting the next unique ID to use for a new item
      * @returns {Promise<string | null>} The next ID to use
