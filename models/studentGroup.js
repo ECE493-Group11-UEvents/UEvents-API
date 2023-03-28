@@ -37,6 +37,21 @@ class StudentGroupModel {
             return null;
         }
     }
+
+    static async getStudentGroupById(id) {
+        const params = {
+            TableName: tableName,
+            Key: {
+                'group_id': { N: id },
+            }
+        };
+        try {
+            return await client.getItem(params).promise();
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    }
 }
 
 module.exports = StudentGroupModel;
