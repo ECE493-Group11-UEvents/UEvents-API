@@ -12,6 +12,11 @@ const client = new AWS.DynamoDB();
 const tableName = 'StudentGroups';
 
 class StudentGroupModel {
+    /**
+     * Gets the student groups the user belongs to
+     * @param {string} email email of the user
+     * @returns the batched response of the student groups the user belongs to 
+     */
     static async getStudentGroups(email){
         let keys = [];
         const memberGroups = await MemberGroupModel.getMemberGroups(email);

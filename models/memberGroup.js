@@ -11,6 +11,11 @@ const client = new AWS.DynamoDB();
 const tableName = 'MemberGroup';
 
 class MemberGroupModel {
+    /**
+     * Gets the MemberGroups the user belongs to (group ids)
+     * @param {string} email email of the user
+     * @returns membergroups that the user belongs to
+     */
     static async getMemberGroups(email){
         const params = {
             TableName: tableName,
