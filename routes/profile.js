@@ -3,20 +3,18 @@ const router = express.Router();
 const UserModel = require('../models/user');
 const EventModel = require('../models/event');
 const FollowModel = require('../models/follow');
+const { isFollowConfirm } = require('../models/follow');
 
-// Handle profile requests
+// Handle profile requests, returns: user info, requests?, followers, followings, events, request sent?, follow confirm?
 router.get('/:email', async (req, res) => {
 
     const email = req.params.email;
 
     const my_user = req.query.user;
 
-    var isFollowing = true;
+    var isFollowConfirm = true;
 
-    if(my_user){
-        // checking if the user is followed
-        isFollowing = await FollowModel.isFollowConfirm(my_user, email);
-    }
+    var isFollowing = true;
 
     // getting the user information
     const user = await UserModel.profile(email);
@@ -30,10 +28,22 @@ router.get('/:email', async (req, res) => {
     // getting the followers of this user
     const followings = await FollowModel.getFollowings(email);
 
+    if(my_user){
+        // checking if the user is followed (confirmed)
+        isFollowConfirm = await FollowModel.isFollowConfirm(my_user, email);
+
+        // checking if the user is followed
+        isFollowing = await FollowModel.isFollowing(my_user, email);
+    }
+    else{
+        const requests = await FollowModel.getFollowRequests(email);
+
+        user.push(requests);
+    }
     
-    if(isFollowing) {
+    if(isFollowConfirm) {
         try {
-            user.push(followers, followings, events);
+            user.push(followers, followings, events, true, isFollowConfirm);
       
             if (user[0].Item) {
               // User exists and credentials are valid, return the user object
@@ -50,7 +60,7 @@ router.get('/:email', async (req, res) => {
     else{
         try {
 
-            user.push(followers.Count, followings.Count);
+            user.push(followers.Count, followings.Count, isFollowing, false);
       
             if (user[0].Item) {
               // User exists and credentials are valid, return the user object
@@ -80,6 +90,22 @@ router.post('/follow', async (req, res) => {
     else{
         const followSuccess = await FollowModel.follow(follower_email, followee_email);
         res.send(followSuccess);
+    }
+});
+
+router.post('/accept', async (req, res) => {
+
+    const {follower_email, followee_email} = req.body;
+
+    // checking if the user is followed
+    const isFollowing = await FollowModel.isFollowing(follower_email, followee_email);
+
+    if(isFollowing){
+        const followSuccess = await FollowModel.accept(follower_email, followee_email);
+        res.send(followSuccess);
+    }
+    else{
+        res.status(400).json({ message: `${follower_email} is not following ${followee_email}` });    
     }
 });
 
