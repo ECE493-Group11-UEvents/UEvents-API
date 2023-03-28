@@ -67,7 +67,7 @@ class EventModel {
         }
     }
 
-    static async createEvent(title, description, location, studentGroup, dateTime, email, photo){
+    static async createEvent(title, description, location, studentGroup, dateTime, email, photo = "LINK_TO_S3"){
         let nextId = await this.getNextId();
 
         const item = {
