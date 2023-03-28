@@ -19,7 +19,7 @@ class UserModel {
             TableName: tableName,
             Key: {
                 'email' : {S: email},
-              }
+            }
         }
         try {
             const result = await client.getItem(params).promise();
@@ -116,6 +116,32 @@ class UserModel {
             console.error(err);
             return false;
           }
+    }
+
+    static async profile(email){
+        try {
+            
+            var params = {
+                TableName: tableName,
+                Key: {
+                    'email' : {S: email},
+                },
+                ProjectionExpression: 'email, first_name, last_name, profile_picture',
+            }
+
+            var result_user = await client.getItem(params).promise();
+
+            var result = new Array();
+
+            result.push(result_user);
+
+            return result;
+
+        }
+        catch(err){
+            console.error(err);
+            return null;
+        }
     }
 }
 
