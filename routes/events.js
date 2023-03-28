@@ -22,8 +22,9 @@ router.post('/', async (req, res) => {
 });
 
 router.get('/', async (req, res) => {
+    const { page, limit } = req.query;
     try {
-        EventModel.getAllEvents()
+        EventModel.getAllEvents( page, limit )
             .then((result) => {
                 console.log(result);
                 res.send(result);

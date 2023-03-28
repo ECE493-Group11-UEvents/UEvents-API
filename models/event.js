@@ -86,10 +86,15 @@ class EventModel {
         return item;
     }
 
-    static async getAllEvents() {
+    static async getAllEvents( page = 1, limit = 10 ) {
+        const params = {
+            TableName: "Events",
+            Limit: limit
+        };
+
         try {
-            const result = await client.scan({ TableName: 'Events' }).promise();
-            return result.Items;
+            const result = await this.scanTablePaginated(params, page, limit);
+            return result;
         } catch (err) {
             console.error(err);
             return null;
@@ -122,7 +127,23 @@ class EventModel {
             console.error('Error getting the next ID:', JSON.stringify(err));
             throw err;
         }
-      };
+    };
+
+    static async scanTablePaginated( params, pageNumber, pageSize) {
+        let items = [];
+        let pageCount = 0;
+        let lastEvaluatedKey = undefined;
+
+        do {
+            const result = await client.scan(params).promise();
+            items = items.concat(result.Items);
+            pageCount++;
+            lastEvaluatedKey = result.LastEvaluatedKey;
+            params.ExclusiveStartKey = lastEvaluatedKey;
+        } while (lastEvaluatedKey && pageCount < pageNumber);
+
+        return items.slice(0, pageSize);
+    }
 }
 
 module.exports = EventModel;
