@@ -40,4 +40,24 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.get('/:event_id', async (req, res) => {
+    const { event_id } = req.params;
+    try {
+        console.log(event_id)
+        EventModel.getEventById(event_id)
+            .then((result) => {
+                console.log(result);
+                res.send(result);
+            })
+            .catch((err) => {
+                console.error(err);
+                res.status(500).send('Error getting all events');
+            });
+    }
+    catch(err) {
+        console.error(err);
+        res.status(500).send('Error getting all events');
+    }
+});
+
 module.exports = router;
