@@ -111,7 +111,7 @@ class EventModel {
 
         try {
             const result = await client.getItem(params).promise();
-            return result;
+            return result.Item;
         } catch (err) {
             console.error(err);
             return null;
