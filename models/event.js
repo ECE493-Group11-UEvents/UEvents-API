@@ -68,8 +68,51 @@ class EventModel {
     }
 
     static async createEvent(title, description, location, studentGroup, dateTime, email, photo){
-        
+        let nextId = await this.getNextId();
+
+        const item = {
+            "event_coordinator_email": {"S": email},
+            "event_coordinator_group_id": {"N": studentGroup},
+            "event_date_time": {"S": dateTime},
+            "event_description": {"S": description},
+            "event_location": {"S": location},
+            "event_name": {"S": title},
+            "event_photo": {"S": photo},
+            "event_id": {"N": nextId}
+        };
+
+        await client.putItem({ TableName: "Events", Item: item }).promise();
+            
+        return item;
     }
+
+    /**
+     * Helper function for getting the next unique ID to use for a new item
+     * @returns {Promise<string | null>} The next ID to use
+     */
+    static async getNextId() {
+        // Increment the value of the LAST_USED_ID item
+        const updateParams = {
+            TableName: 'COUNTERS',
+            Key: { "table_name": {'S': 'Events'} },
+            UpdateExpression: 'SET #value = #value + :incr',
+            ExpressionAttributeNames: {
+                '#value': 'LAST_USED_ID',
+            },
+            ExpressionAttributeValues: {
+                ':incr': {"N": "1"},
+            },
+            ReturnValues: 'UPDATED_NEW',
+        };
+      
+        try {
+            const updatedData = await client.updateItem(updateParams).promise();
+            return updatedData.Attributes.LAST_USED_ID.N;
+        } catch (err) {
+            console.error('Error getting the next ID:', JSON.stringify(err));
+            throw err;
+        }
+      };
 }
 
 module.exports = EventModel;
