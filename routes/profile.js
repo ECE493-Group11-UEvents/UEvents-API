@@ -60,7 +60,17 @@ router.get('/:email', async (req, res) => {
     else{
         try {
 
-            user.push(followers.Count, followings.Count, isFollowing, false);
+            // checking if follow request is sent
+            var followeRequest;
+            if (isFollowing && isFollowing.Item) {
+
+                followeRequest = true;
+
+            } else {
+                followeRequest = false;
+            }
+
+            user.push(followers.Count, followings.Count, followeRequest, false);
       
             if (user[0].Item) {
               // User exists and credentials are valid, return the user object
