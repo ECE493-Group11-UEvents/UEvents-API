@@ -11,7 +11,7 @@ var eventRoute = require('./routes/events');
 var studentGroupRoute = require('./routes/studentGroups');
 var memberGroupRoute = require('./routes/memberGroups');
 
-const basicAuth = require('./middleware/basicAuth');
+const basicAuth = require('./middleware/BasicAuth');
 const cors = require('cors');
 
 var indexRouter = require('./routes/index');
