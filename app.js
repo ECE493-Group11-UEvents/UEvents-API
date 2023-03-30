@@ -39,6 +39,7 @@ app.use(API_PREFIX + '/signup', signupRoute);
 app.use(API_PREFIX + '/login', loginRoute);
 app.use(API_PREFIX + '/change_password', basicAuth, changePasswordRoute);
 app.use(API_PREFIX + '/profile', profileRoute);
+
 app.use(API_PREFIX + '/events', eventRoute);
 app.use(API_PREFIX + '/studentGroups', studentGroupRoute);
 app.use(API_PREFIX + '/memberGroups', memberGroupRoute);
