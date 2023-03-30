@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const MemberGroupModel = require('../models/membergroup');
+const MemberGroupModel = require('../models/memberGroup');
 
 // Handle password change requests
 router.get('/:email', async (req, res) => {
