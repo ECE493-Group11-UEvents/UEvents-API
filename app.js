@@ -35,7 +35,7 @@ app.use(API_PREFIX + '/users', basicAuth, usersRouter);
 app.use(API_PREFIX + '/signup', signupRoute);
 app.use(API_PREFIX + '/login', loginRoute);
 app.use(API_PREFIX + '/change_password', basicAuth, changePasswordRoute);
-app.use('/profile', profileRoute);
+app.use(API_PREFIX + '/profile', profileRoute);
 
 
 
