@@ -12,52 +12,39 @@ const client = new AWS.DynamoDB();
 
 class EventModel {
 
-    // get individual events based on event_id
-    static async getEvent(id){
-        try{
-            var params = {
-                TableName: "Events",
-                Key: {
-                    'event_id' : {N: id},
-                }
-            }
-            const result = await client.getItem(params).promise();
-
-            return result;
-        }
-        catch(err){
-            console.error(err);
-            return null;
-        }
-    }
-
-    // getting the RSVP'd events
+    /**
+     * Retrieves the RSVP'd events for the given email.
+     * @param {string} email - The email to get the RSVP'd events for.
+     * @returns {Promise<Object[]>} An array of RSVP'd events with their details.
+     * Returns null if there was an error.
+     */
     static async getEvents(email){
         try{
-            var params = {
+            const params = {
                 KeyConditionExpression: 'email = :email',
                 ExpressionAttributeValues: {
-                    ':email': { S: email }
+                  ':email': { S: email },
                 },
-                TableName: 'RSVP'
-            };
-
-            var result_rsvp = await client.query(params).promise();
-
-            console.log(result_rsvp.Count);
-
-            var events = [];
-            var promises = [];
-
-            var id;
-
-            if(result_rsvp.Count > 0){
-                for (var i = 0; i < result_rsvp.Count; i++){
-                    id = result_rsvp.Items[i].event_id.N;
-                    promises.push(this.getEvent(id));
-                }
-                events.push(...await Promise.all(promises));
-            }
+                TableName: 'RSVP',
+              };
+              const resultRsvp = await client.query(params).promise();
+          
+              const events = [];
+          
+              if (resultRsvp.Count > 0) {
+                const keys = resultRsvp.Items.map(item => ({
+                  'event_id': { N: item.event_id.N },
+                }));
+                const params = {
+                  RequestItems: {
+                    'Events': {
+                      Keys: keys,
+                    },
+                  },
+                };
+                const resultEvents = await client.batchGetItem(params).promise();
+                events.push(...resultEvents.Responses.Events);
+              }
 
             return events;
         }
