@@ -23,7 +23,7 @@ jobs:
       id: deploy
       run: |
         aws deploy create-deployment \
-        --application-name UEvents \
-        --deployment-group-name UEvents-deployment-group \
+        --application-name UEvents-CD \
+        --deployment-group-name UEvents-DG \
         --deployment-config-name CodeDeployDefault.OneAtATime \
         --github-location repository=${{ github.repository }},commitId=${{ github.sha }}
