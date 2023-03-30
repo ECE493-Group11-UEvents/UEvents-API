@@ -66,6 +66,101 @@ class EventModel {
             return null;
         }
     }
+
+    static async createEvent(title, description, location, studentGroup, dateTime, email, photo = "LINK_TO_S3"){
+        let nextId = await this.getNextId();
+
+        const item = {
+            "event_coordinator_email": {"S": email},
+            "event_coordinator_group_id": {"N": studentGroup},
+            "event_date_time": {"S": dateTime},
+            "event_description": {"S": description},
+            "event_location": {"S": location},
+            "event_name": {"S": title},
+            "event_photo": {"S": photo},
+            "event_id": {"N": nextId}
+        };
+
+        await client.putItem({ TableName: "Events", Item: item }).promise();
+            
+        return item;
+    }
+
+    static async getAllEvents( page = 1, limit = 10 ) {
+        const params = {
+            TableName: "Events",
+            Limit: limit
+        };
+
+        try {
+            const result = await this.scanTablePaginated(params, page, limit);
+            return result;
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    }
+
+    static async getEventById( id ) {
+        const params = {
+            TableName: "Events",
+            Key: {
+                'event_id' : {N: id},
+            }
+        };
+
+        try {
+            const result = await client.getItem(params).promise();
+            return result.Item;
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    }
+
+    /**
+     * Helper function for getting the next unique ID to use for a new item
+     * @returns {Promise<string | null>} The next ID to use
+     */
+    static async getNextId() {
+        // Increment the value of the LAST_USED_ID item
+        const updateParams = {
+            TableName: 'COUNTERS',
+            Key: { "table_name": {'S': 'Events'} },
+            UpdateExpression: 'SET #value = #value + :incr',
+            ExpressionAttributeNames: {
+                '#value': 'LAST_USED_ID',
+            },
+            ExpressionAttributeValues: {
+                ':incr': {"N": "1"},
+            },
+            ReturnValues: 'UPDATED_NEW',
+        };
+      
+        try {
+            const updatedData = await client.updateItem(updateParams).promise();
+            return updatedData.Attributes.LAST_USED_ID.N;
+        } catch (err) {
+            console.error('Error getting the next ID:', JSON.stringify(err));
+            throw err;
+        }
+    };
+
+    static async scanTablePaginated( params, pageNumber, pageSize) {
+        let items = [];
+        let pageCount = 0;
+        let lastEvaluatedKey = undefined;
+
+        do {
+            const result = await client.scan(params).promise();
+            items = items.concat(result.Items);
+            pageCount++;
+            lastEvaluatedKey = result.LastEvaluatedKey;
+            params.ExclusiveStartKey = lastEvaluatedKey;
+        } while (lastEvaluatedKey && pageCount < pageNumber);
+
+        return items.slice(0, pageSize);
+    }
 }
 
 module.exports = EventModel;
