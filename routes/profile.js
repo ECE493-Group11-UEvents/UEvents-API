@@ -134,5 +134,14 @@ router.delete('/unfollow', async(req, res) => {
     }
 });
 
+router.put('/edit', async (req, res) => {
+    const {email, first_name, last_name, profile_picture} = req.body;
+
+    const result = await UserModel.editProfile(email, first_name, last_name, profile_picture);
+
+    res.send(result);
+    
+});
+
 
 module.exports = router;
