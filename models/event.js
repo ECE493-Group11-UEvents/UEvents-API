@@ -123,7 +123,7 @@ class EventModel {
     }
 
     /**
-     * Edits a given event with id. If a photo link is provided, it will be used instead of the photo.
+     * Edits a given event with id. If a photo is provided, it will be used instead of the photo link.
      * @param {string} id 
      * @param {string} title 
      * @param {string} description 
@@ -135,11 +135,8 @@ class EventModel {
      */
     static async editEvent( id, title, description, location, dateTime, photo, link_to_photo = null ) {
         let photo_url = "";
-        // If a link to a photo is provided, use that instead of the photo.
-        if (link_to_photo) {
-            photo_url = link_to_photo;
-        }
-        else if (photo){
+        // If a photo is provided, use that instead of the link to photo.
+        if (photo){
             const params = {
                 Bucket: process.env.BUCKET_NAME,
                 Key: uuid.v4() + photo.originalname,
@@ -149,6 +146,9 @@ class EventModel {
             };
             await s3.putObject(params).promise();
             photo_url = `https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/${params.Key}`;
+        }
+        else if (link_to_photo.startsWith(`https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/`)) {
+            photo_url = link_to_photo;
         }
 
         const item = {
