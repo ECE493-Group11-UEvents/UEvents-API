@@ -3,8 +3,9 @@ const router = express.Router();
 const UserModel = require('../models/user');
 const EventModel = require('../models/event');
 const FollowModel = require('../models/follow');
-const { isFollowConfirm } = require('../models/follow');
+const multer = require('multer');
 
+const upload = multer();
 // Handle profile requests, returns: user info, requests?, followers, followings, events, request sent?, follow confirm?
 router.get('/:email', async (req, res) => {
 
@@ -135,13 +136,30 @@ router.delete('/unfollow', async(req, res) => {
 });
 
 router.put('/edit', async (req, res) => {
-    const {email, first_name, last_name, profile_picture} = req.body;
+    
+    const {email, first_name, last_name} = req.body;
 
-    const result = await UserModel.editProfile(email, first_name, last_name, profile_picture);
+    const result = await UserModel.editProfile(email, first_name, last_name);
 
     res.send(result);
     
 });
 
+router.put('/edit_picture', upload.single('photo'), async (req, res) => {
+
+    const {email} = req.body;
+
+    const photo = req.file;
+
+    const result = await UserModel.editProfilePicture(email, photo);
+
+    if(result){
+        res.send(result);
+    }
+    else{
+        res.status(500).send("Error");
+    }
+    
+});
 
 module.exports = router;

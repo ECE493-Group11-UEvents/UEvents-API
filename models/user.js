@@ -4,6 +4,8 @@
 
 const AWS = require('aws-sdk');
 const bcrypt = require('bcrypt');
+const uuid = require('uuid');
+
 
 AWS.config.update({
   region: process.env.REGION,
@@ -190,17 +192,16 @@ class UserModel {
      * @param profile_picture The new profile picture for the user
      * @return A string indicating whether the profile was successfully updated or if the user does not exist
      */
-    static async editProfile(email, first_name, last_name, profile_picture){
+    static async editProfile(email, first_name, last_name){
 
         if(await this.userExists(email)){
             var params = {
                 TableName: tableName,
                 Key: { email: { S: email } },
-                UpdateExpression: 'set first_name = :fn, last_name = :ln, profile_picture = :pp',
+                UpdateExpression: 'set first_name = :fn, last_name = :ln',
                 ExpressionAttributeValues: {
                 ':fn': { S: first_name },
                 ':ln': { S: last_name },
-                ':pp': { S: profile_picture }
                 },
                 ReturnValues: 'ALL_NEW'
             };
@@ -216,6 +217,54 @@ class UserModel {
             return "User does not exist";
         }
 
+    }
+
+    /**
+     * Updates the profile picture of the user with the specified email address.
+     * If a photo is provided, uploads it to S3 and updates the profile_picture attribute in DynamoDB.
+     * @param {string} email - The email address of the user.
+     * @param {object} photo - The photo data to upload (optional).
+     * @returns {string} The URL of the user's new profile picture, or "User does not exist" if the user does not exist.
+     * @throws {Error} If there was an error uploading the photo to S3 or updating the profile_picture attribute in DynamoDB.
+     */
+    static async editProfilePicture(email, photo){
+
+        if(await this.userExists(email)){
+            try{
+
+                var photo_url = "";
+                if (photo){
+                    const params = {
+                        Bucket: process.env.BUCKET_NAME,
+                        Key: uuid.v4() + photo.originalname,
+                        Body: photo.buffer,
+                        ContentType: photo.mimetype,
+                        ACL: 'public-read'
+                    };
+                    await s3.putObject(params).promise();
+                    photo_url = `https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/${params.Key}`;
+                }
+    
+                var params = {
+                    TableName: 'Users',
+                    Key: { email: { S: email } },
+                    UpdateExpression: 'set profile_picture = :url',
+                    ExpressionAttributeValues: {
+                    ':url': {S: photo_url}
+                    }
+                };
+    
+                const result = await client.updateItem(params).promise();
+                return photo_url;
+            }
+            catch (error) {
+                console.error(error);
+                throw error;
+            }
+        }
+        else{
+            return "User does not exist";
+        }
     }
 }
 
