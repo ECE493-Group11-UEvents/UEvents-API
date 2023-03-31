@@ -1,4 +1,5 @@
 const AWS = require('aws-sdk');
+const uuid = require('uuid');
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -9,6 +10,9 @@ AWS.config.update({
 });
 
 const client = new AWS.DynamoDB();
+const s3 = new AWS.S3();
+
+const DEFAULT_EVENT_PICTURE = `https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/default_event_photo.png`;
 
 class EventModel {
 
@@ -54,7 +58,20 @@ class EventModel {
         }
     }
 
-    static async createEvent(title, description, location, studentGroup, dateTime, email, photo = "LINK_TO_S3"){
+    static async createEvent(title, description, location, studentGroup, dateTime, email, photo){
+        let photo_url = "";
+        if (photo){
+            const params = {
+                Bucket: process.env.BUCKET_NAME,
+                Key: uuid.v4() + photo.originalname,
+                Body: photo.buffer,
+                ContentType: photo.mimetype,
+                ACL: 'public-read'
+            };
+            await s3.putObject(params).promise();
+            photo_url = `https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/${params.Key}`;
+        }
+
         let nextId = await this.getNextId();
 
         const item = {
@@ -64,7 +81,7 @@ class EventModel {
             "event_description": {"S": description},
             "event_location": {"S": location},
             "event_name": {"S": title},
-            "event_photo": {"S": photo},
+            "event_photo": {"S": photo_url || DEFAULT_EVENT_PICTURE},
             "event_id": {"N": nextId}
         };
 

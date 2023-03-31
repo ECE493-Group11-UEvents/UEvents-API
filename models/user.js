@@ -9,7 +9,11 @@ AWS.config.update({
 
 const client = new AWS.DynamoDB();
 
+const s3 = new AWS.S3();
+
 const tableName = 'Users';
+
+const DEFAULT_PROFILE_PICTURE = `https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/default_user_photo.jpg`;
 
 class UserModel {
 
@@ -36,7 +40,7 @@ class UserModel {
     }
 
     // creates a user
-    static async create( email,first_name, last_name, password, profile_picture = "", roles = []) {
+    static async create( email,first_name, last_name, password, roles = []) {
 
         const salt = await bcrypt.genSalt();
         var hash = await bcrypt.hash(password, salt);
@@ -47,7 +51,7 @@ class UserModel {
           "first_name": {"S": first_name},
           "last_name": {"S": last_name},
           "password": {"S": hash},
-          "profile_picture": {"S": profile_picture},
+          "profile_picture": {"S": DEFAULT_PROFILE_PICTURE},
           "roles": {"L": roles},
         };
     
