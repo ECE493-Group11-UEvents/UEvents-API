@@ -123,6 +123,79 @@ class EventModel {
     }
 
     /**
+     * Edits a given event with id. If a photo link is provided, it will be used instead of the photo.
+     * @param {string} id 
+     * @param {string} title 
+     * @param {string} description 
+     * @param {string} location 
+     * @param {string} dateTime 
+     * @param {multer} photo 
+     * @param {string} link_to_photo
+     * @returns 
+     */
+    static async editEvent( id, title, description, location, dateTime, photo, link_to_photo = null ) {
+        let photo_url = "";
+        // If a link to a photo is provided, use that instead of the photo.
+        if (link_to_photo) {
+            photo_url = link_to_photo;
+        }
+        else if (photo){
+            const params = {
+                Bucket: process.env.BUCKET_NAME,
+                Key: uuid.v4() + photo.originalname,
+                Body: photo.buffer,
+                ContentType: photo.mimetype,
+                ACL: 'public-read'
+            };
+            await s3.putObject(params).promise();
+            photo_url = `https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/${params.Key}`;
+        }
+
+        const item = {
+            "event_date_time": {"S": dateTime},
+            "event_description": {"S": description},
+            "event_location": {"S": location},
+            "event_name": {"S": title},
+            "event_photo": {"S": photo_url || DEFAULT_EVENT_PICTURE}
+        };
+
+        const params = {
+            TableName: 'Events',
+            Key: { event_id:{ N: id } },
+            UpdateExpression: 'set #attr1 = :value1, #attr2 = :value2, #attr3 = :value3, #attr4 = :value4, #attr5 = :value5',
+            ExpressionAttributeNames: {
+              '#attr1': 'event_name',
+              '#attr2': 'event_description',
+              '#attr3': 'event_location',
+              '#attr4': 'event_date_time',
+              '#attr5': 'event_photo',
+            },
+            ExpressionAttributeValues: {
+                ':value1': {"S": title},
+                ':value2': {"S": description},
+                ':value3': {"S": location},
+                ':value4': {"S": dateTime},
+                ':value5': {"S": photo_url || DEFAULT_EVENT_PICTURE }
+            },
+            ReturnValues: 'UPDATED_NEW'
+        };
+
+        try {
+            client.updateItem(params).promise()
+                .then((data) => {
+                    console.log(data);
+                    return item;
+                })
+                .catch((err) => {
+                    return err
+                });
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    };
+
+    /**
      * Helper function for getting the next unique ID to use for a new item
      * @returns {Promise<string | null>} The next ID to use
      */
