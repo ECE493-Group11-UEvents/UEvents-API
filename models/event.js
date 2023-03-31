@@ -1,4 +1,5 @@
 const AWS = require('aws-sdk');
+const uuid = require('uuid');
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -57,19 +58,18 @@ class EventModel {
         }
     }
 
-    static async createEvent(title, description, location, studentGroup, dateTime, email, photo = ""){
-        if (photo == "") {
-            photo = DEFAULT_EVENT_PICTURE;
-        }
-        else {
+    static async createEvent(title, description, location, studentGroup, dateTime, email, photo){
+        let photo_url = "";
+        if (photo){
             const params = {
                 Bucket: process.env.BUCKET_NAME,
-                Key: photo,
-                Body: photo,
+                Key: uuid.v4() + photo.originalname,
+                Body: photo.buffer,
+                ContentType: photo.mimetype,
                 ACL: 'public-read'
             };
             await s3.putObject(params).promise();
-            photo = `https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/${photo}`;
+            photo_url = `https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/${params.Key}`;
         }
 
         let nextId = await this.getNextId();
@@ -81,7 +81,7 @@ class EventModel {
             "event_description": {"S": description},
             "event_location": {"S": location},
             "event_name": {"S": title},
-            "event_photo": {"S": photo},
+            "event_photo": {"S": photo_url || DEFAULT_EVENT_PICTURE},
             "event_id": {"N": nextId}
         };
 

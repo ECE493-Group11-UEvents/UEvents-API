@@ -1,9 +1,13 @@
 var express = require('express');
 var router = express.Router();
 const EventModel = require('../models/event');
+const multer = require('multer');
 
-router.post('/', async (req, res) => {
-    const { title, description, location, studentGroup, dateTime, email, photo } = req.body;
+const upload = multer();
+
+router.post('/',  upload.single('photo'), async (req, res) => {
+    const { title, description, location, studentGroup, dateTime, email } = req.body;
+    const photo = req.file;
     try {
         EventModel.createEvent(title, description, location, studentGroup, dateTime, email, photo)
             .then((result) => {
