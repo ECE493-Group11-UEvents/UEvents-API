@@ -50,7 +50,7 @@ class UserModel {
     }
 
     /**
-     * Create a new user with the specified data in the DynamoDB table.
+     * Create a new user with the specified data in the DynamoDB table and uploads the picture to the S3 Bucket.
      * @param {String} email - The email address of the user.
      * @param {String} first_name - The first name of the user.
      * @param {String} last_name - The last name of the user.
@@ -59,19 +59,33 @@ class UserModel {
      * @param {Array} roles - An array of roles for the user.
      * @returns {Object} - The newly created user object.
      */
-    static async create( email,first_name, last_name, password, roles = []) {
+    static async create( email,first_name, last_name, password, photo, roles = []) {
 
         const salt = await bcrypt.genSalt();
         var hash = await bcrypt.hash(password, salt);
         hash = hash.toString();
+
+        var photo_url = "";
+
+        if (photo){
+            const params = {
+                Bucket: process.env.BUCKET_NAME,
+                Key: uuid.v4() + photo.originalname,
+                Body: photo.buffer,
+                ContentType: photo.mimetype,
+                ACL: 'public-read'
+            };
+            await s3.putObject(params).promise();
+            photo_url = `https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/${params.Key}`;
+        }
 
         const item = {
           "email": {"S": email},
           "first_name": {"S": first_name},
           "last_name": {"S": last_name},
           "password": {"S": hash},
-          "profile_picture": {"S": DEFAULT_PROFILE_PICTURE},
-          "roles": {"L": roles},
+          "profile_picture": {"S": photo_url},
+          "roles": {"L": []},
         };
     
         await client.putItem({ TableName: tableName, Item: item }).promise();
