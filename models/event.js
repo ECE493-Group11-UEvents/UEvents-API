@@ -217,7 +217,7 @@ class EventModel {
         }
 
         try {
-            const result = await client.putItem({ TableName: "Events", Item: item }).promise();
+            const result = await client.putItem({ TableName: "RSVP", Item: item }).promise();
             return result;
         } catch (err) {
             console.error(err);
