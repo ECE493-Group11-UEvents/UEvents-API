@@ -80,7 +80,7 @@ router.post('/edit/:event_id', upload.single('photo'), async (req, res) => {
     }
 });
 
-router.delete('/delete/:event_id', async (req, res) => {
+router.delete('/:event_id', async (req, res) => {
     const { event_id } = req.params;
     try {
         EventModel.deleteEvent(event_id)
