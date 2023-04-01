@@ -25,6 +25,45 @@ class RSVPModel {
             return null;
         }
     }
+
+    static async getRSVPsByEventId( id ) {
+        const params = {
+            TableName: 'RSVP',
+            FilterExpression: 'event_id = :event_id',
+            ExpressionAttributeValues: {
+              ':event_id': { N: id },
+            }
+        }
+
+        try {
+            const result = await client.scan(params).promise();
+            return result.Items;
+        }
+        catch(err) {
+            console.error(err);
+            return null;
+        }
+    }
+
+    static async isRSVP( id, email ) {
+        const params = {
+            TableName: 'RSVP',
+            KeyConditionExpression: 'email = :email AND event_id = :event_id',
+            ExpressionAttributeValues: {
+                ':email': { S: email },
+                ':event_id': { N: id },
+            }
+        }
+
+        try {
+            const result = await client.query(params).promise();
+            return result.Count > 0;
+        }
+        catch(err) {
+            console.error(err);
+            return null;
+        }
+    }
 }
 
 module.exports = RSVPModel;
