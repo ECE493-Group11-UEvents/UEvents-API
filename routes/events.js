@@ -80,4 +80,22 @@ router.post('/edit/:event_id', upload.single('photo'), async (req, res) => {
     }
 });
 
+router.delete('delete/:event_id', async (req, res) => {
+    const { event_id } = req.params;
+    try {
+        EventModel.deleteEvent(event_id)
+            .then((result) => {
+                res.send(result);
+            })
+            .catch((err) => {
+                console.error(err);
+                res.status(500).send('Error deleting event');
+            });
+    }
+    catch(err) {
+        console.error(err);
+        res.status(500).send('Error deleting event');
+    }
+});
+
 module.exports = router;

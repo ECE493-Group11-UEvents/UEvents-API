@@ -195,6 +195,21 @@ class EventModel {
         }
     };
 
+    static async deleteEvent( id ) {
+        const params = {
+            TableName: 'Events',
+            Key: { event_id:{ N: id } }
+        };
+
+        try {
+            const result = await client.deleteItem(params).promise();
+            return result;
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    }
+
     /**
      * Helper function for getting the next unique ID to use for a new item
      * @returns {Promise<string | null>} The next ID to use
