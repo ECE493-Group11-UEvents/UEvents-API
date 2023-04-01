@@ -45,6 +45,25 @@ class RSVPModel {
         }
     }
 
+    static async getRSVPsByEmail( email ) {
+        const params = {
+            KeyConditionExpression: 'email = :email',
+            ExpressionAttributeValues: {
+                ':email': { S: email },
+            },
+            TableName: 'RSVP',
+        };
+
+        try {
+            const result = await client.query(params).promise();
+            return result.Items;
+        }
+        catch(err) {
+            console.error(err);
+            return null;
+        }
+    }
+
     static async isRSVP( id, email ) {
         const params = {
             TableName: 'RSVP',
@@ -58,6 +77,25 @@ class RSVPModel {
         try {
             const result = await client.query(params).promise();
             return result.Count > 0;
+        }
+        catch(err) {
+            console.error(err);
+            return null;
+        }
+    }
+
+    static async deleteRSVP( id, email ) {
+        const params = {
+            TableName: 'RSVP',
+            Key: {
+                'email': { S: email },
+                'event_id': { N: id }
+            }
+        }
+
+        try {
+            const result = await client.deleteItem(params).promise();
+            return result;
         }
         catch(err) {
             console.error(err);

@@ -21,7 +21,7 @@ router.get('/:email', async (req, res) => {
     const user = await UserModel.profile(email);
 
     // getting the events user has signed up for
-    const events = await EventModel.getEvents(email);
+    const events = await EventModel.getRSVPEventsDetails(email);
 
     // getting the followers of this user
     const followers = await FollowModel.getFollowers(email);

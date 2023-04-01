@@ -21,6 +21,24 @@ router.get('/:event_id', async (req, res) => {
     }
 });
 
+router.get('/email/:email', async (req, res) => {
+    const { email } = req.params;
+    try {
+        RSVPModel.getRSVPsByEmail(email)
+            .then((result) => {
+                res.send(result);
+            })
+            .catch((err) => {
+                console.error(err);
+                res.status(500).send('Error getting all event RSVPs');
+            });
+    }
+    catch(err) {
+        console.error(err);
+        res.status(500).send('Error getting all event RSVPs');
+    }
+});
+
 router.get('/:event_id/:email', async (req, res) => {
     const { event_id, email } = req.params;
     try {
@@ -59,9 +77,8 @@ router.post('/:event_id', async (req, res) => {
     }
 });
 
-router.delete('/:event_id', async (req, res) => {
-    const { event_id } = req.params;
-    const { email } = req.body;
+router.delete('/:event_id/:email', async (req, res) => {
+    const { event_id, email } = req.params;
     try {
         RSVPModel.deleteRSVP(event_id, email)
             .then((result) => {
