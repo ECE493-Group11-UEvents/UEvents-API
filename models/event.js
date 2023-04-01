@@ -210,21 +210,6 @@ class EventModel {
         }
     }
 
-    static async RSVP( id, email ) {
-        const item = {
-            event_id: { N: id },
-            email: { S: email }
-        }
-
-        try {
-            const result = await client.putItem({ TableName: "RSVP", Item: item }).promise();
-            return result;
-        } catch (err) {
-            console.error(err);
-            return null;
-        }
-    }
-
     /**
      * Helper function for getting the next unique ID to use for a new item
      * @returns {Promise<string | null>} The next ID to use
