@@ -98,4 +98,23 @@ router.delete('/:event_id', async (req, res) => {
     }
 });
 
+router.post('/RSVP/:event_id', async (req, res) => {
+    const { event_id } = req.params;
+    const { email } = req.body;
+    try {
+        EventModel.RSVP(event_id, email)
+            .then((result) => {
+                res.send(result);
+            })
+            .catch((err) => {
+                console.error(err);
+                res.status(500).send('Error RSVPing to event');
+            });
+    }
+    catch(err) {
+        console.error(err);
+        res.status(500).send('Error RSVPing to event');
+    }
+});
+
 module.exports = router;
