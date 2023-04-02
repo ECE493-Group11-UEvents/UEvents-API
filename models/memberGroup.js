@@ -64,10 +64,31 @@ class MemberGroupModel {
             return null;
         }
     }
-
-    // static async deleteGroupMember(email, id){
-
-    // }
+    
+    /**
+     * Deletes a group member with the specified email address and group ID.
+     * 
+     * @param {string} email - The email address of the group member to delete.
+     * @param {number} id - The ID of the group to delete the member from.
+     * @returns {Promise<object|null>} - A Promise that resolves to the result of the delete operation, or null if an error occurs.
+     */
+    static async deleteGroupMember(email, id){
+        try{
+            var params = {
+                TableName: tableName,
+                Key: {
+                    "email": { "S": email },
+                    "group_id": { "N": id.toString() }
+                }
+            };
+            const result = await client.deleteItem(params).promise();
+            return result;
+        }
+        catch (err) {
+            console.error(err);
+            return null;
+        }
+    }
 }
 
 module.exports = MemberGroupModel;

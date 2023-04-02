@@ -25,18 +25,17 @@ router.get('/group_members/:id', async (req, res) => {
     }
 });
 
-// router.delete('/:email/:id', async (req, res) => {
-//     const email = req.params.email;
-//     const id = req.params.id;
+router.delete('/:email/:id', async (req, res) => {
+    const email = req.params.email;
+    const id = req.params.id;
 
-
-//     const groupMemebers = await MemberGroupModel.deleteGroupMember(email, id);
-//     if (groupMemebers) {
-//         res.send(groupMemebers);
-//     } else {
-//         res.send('Failed to get group members');
-//     }
-// });
+    const groupMemebers = await MemberGroupModel.deleteGroupMember(email, id);
+    if (groupMemebers) {
+        res.send("User deleted successfully");
+    } else {
+        res.send('Failed to delete the member');
+    }
+});
 
 
 
