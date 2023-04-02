@@ -1,6 +1,7 @@
 const AWS = require('aws-sdk');
 const uuid = require('uuid');
 const dotenv = require('dotenv');
+const RSVPModel = require('./rsvp');
 dotenv.config();
 
 AWS.config.update({
@@ -22,33 +23,27 @@ class EventModel {
      * @returns {Promise<Object[]>} An array of RSVP'd events with their details.
      * Returns null if there was an error.
      */
-    static async getEvents(email){
+    static async getRSVPEventsDetails(email){
         try{
-            const params = {
-                KeyConditionExpression: 'email = :email',
-                ExpressionAttributeValues: {
-                  ':email': { S: email },
-                },
-                TableName: 'RSVP',
-              };
-              const resultRsvp = await client.query(params).promise();
-          
-              const events = [];
-          
-              if (resultRsvp.Count > 0) {
-                const keys = resultRsvp.Items.map(item => ({
-                  'event_id': { N: item.event_id.N },
+            const resultRsvp = await RSVPModel.getRSVPsByEmail(email);
+        
+            const events = [];
+        
+            if (resultRsvp.length > 0) {
+                const keys = resultRsvp.map(item => ({
+                    'event_id': { N: item.event_id.N },
                 }));
+
                 const params = {
-                  RequestItems: {
-                    'Events': {
-                      Keys: keys,
+                    RequestItems: {
+                        'Events': {
+                            Keys: keys,
+                        },
                     },
-                  },
                 };
                 const resultEvents = await client.batchGetItem(params).promise();
                 events.push(...resultEvents.Responses.Events);
-              }
+            }
 
             return events;
         }
