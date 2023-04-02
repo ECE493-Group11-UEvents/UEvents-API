@@ -85,7 +85,7 @@ class EventModel {
         return item;
     }
 
-    static async getAllEvents( page = 1, limit = 10 ) {
+    static async getAllEvents( page = 1, limit = 10, query = null ) {
         const params = {
             TableName: "Events",
             Limit: limit

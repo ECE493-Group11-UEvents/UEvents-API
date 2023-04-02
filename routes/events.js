@@ -25,9 +25,9 @@ router.post('/',  upload.single('photo'), async (req, res) => {
 });
 
 router.get('/', async (req, res) => {
-    const { page, limit } = req.query;
+    const { page, limit, query } = req.query;
     try {
-        EventModel.getAllEvents( page, limit )
+        EventModel.getAllEvents( page, limit, query )
             .then((result) => {
                 res.send(result);
             })
