@@ -60,4 +60,42 @@ router.get('/:event_id', async (req, res) => {
     }
 });
 
+router.post('/edit/:event_id', upload.single('photo'), async (req, res) => {
+    const { event_id } = req.params;
+    const { title, description, location, dateTime, photo_url } = req.body;
+    const photo = req.file;
+    try {
+        EventModel.editEvent(event_id, title, description, location, dateTime, photo, photo_url)
+            .then((result) => {
+                res.send(result);
+            })
+            .catch((err) => {
+                console.error(err);
+                res.status(500).send('Error editing event');
+            });
+    }
+    catch(err) {
+        console.error(err);
+        res.status(500).send('Error editing event');
+    }
+});
+
+router.delete('/:event_id', async (req, res) => {
+    const { event_id } = req.params;
+    try {
+        EventModel.deleteEvent(event_id)
+            .then((result) => {
+                res.send(result);
+            })
+            .catch((err) => {
+                console.error(err);
+                res.status(500).send('Error deleting event');
+            });
+    }
+    catch(err) {
+        console.error(err);
+        res.status(500).send('Error deleting event');
+    }
+});
+
 module.exports = router;
