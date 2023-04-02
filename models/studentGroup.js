@@ -12,6 +12,43 @@ const client = new AWS.DynamoDB();
 const tableName = 'StudentGroups';
 
 class StudentGroupModel {
+
+    static async requestStudentGroup(email, description, id){
+        var result;
+        try{
+            // if(id && this.getStudentGroupById(id)){
+                var params = {
+                    TableName: 'Requests',
+                    Item: {
+                    'email': { S: email },
+                    'group_id-role': { S: id+"-event_coordinator"},
+                    'decision': { S: "pending"},
+                    'description': { S: description },
+                    'id': { N: id }
+                    }
+                };
+                result = await client.putItem(params).promise();
+            // }
+            // else{
+            //     var params = {
+            //         TableName: 'Requests',
+            //         Item: {
+            //         'email': { S: email },
+            //         'decision': {S: "pending"},
+            //         'description': { S: description },
+            //         'id': { N: null }
+            //         }
+            //     };
+            //     result = await client.putItem(params).promise();
+            // }
+            return result;
+        }
+        catch (err) {
+            console.error(err);
+            return null;
+        }
+    }
+
     /**
      * Gets the student groups the user belongs to
      * @param {string} email email of the user

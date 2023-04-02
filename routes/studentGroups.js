@@ -25,5 +25,16 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+router.post('/request', async (req, res) => {
+    const {email, description, id} = req.body;
+
+    const studentGroup = await StudentGroupModel.requestStudentGroup(email, description, id);
+    if (studentGroup) {
+        res.send(studentGroup.Item);
+    } else {
+        res.send('Failed to send request student group');
+    }
+});
+
 
 module.exports = router;
