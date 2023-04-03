@@ -87,7 +87,7 @@ class EventModel {
         return item;
     }
 
-    static async getAllEvents( page = 1, limit = 10, following_email, searchText ) {
+    static async getAllEvents( page = 1, limit = 10, following_email, search ) {
         const params = {
             TableName: "Events",
             Limit: limit,
@@ -117,6 +117,20 @@ class EventModel {
                 params.ExpressionAttributeValues = {
                     ...followingUsersAttributes,
                     ...followingGroupsAttributes
+                }
+            }
+
+            // get events that match the search query
+            if (search) {
+                const searchFilterExp = 'contains(event_name, :search) OR contains(event_description, :search) OR contains(event_location, :search)'
+                if (params.FilterExpression) {
+                    params.FilterExpression += ' AND ' + searchFilterExp;
+                } else {
+                    params.FilterExpression = searchFilterExp;
+                }
+                params.ExpressionAttributeValues = {
+                    ...params.ExpressionAttributeValues,
+                    ':search': {S: search}
                 }
             }
 
