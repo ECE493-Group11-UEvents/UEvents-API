@@ -90,41 +90,39 @@ class EventModel {
     static async getAllEvents( page = 1, limit = 10, following_email, searchText ) {
         const params = {
             TableName: "Events",
-            Limit: limit
+            Limit: limit,
         };
-        
-        // get events created by users that the current following_email user follows
-        if (following_email) {
-            // get following users and groups
-            const followingUsers = await FollowModel.getFollowings(following_email);
-            const followingGroups = await FollowGroupModel.getFollowingGroups(following_email);
-
-            // get emails and group ids that user is following
-            const followingUserEmails = followingUsers.Items.map((_, index) => `:email${index + 1}`);
-            const followingGroupIds = followingGroups.Items.map((_, index) => `:groupId${index + 1}`);
-
-            // setup our filter
-            params.FilterExpression = `event_coordinator_email IN (${followingUserEmails}) OR event_coordinator_group_id IN (${followingGroupIds})`;
-            const followingUsersAttributes = followingUsers.Items.reduce((acc, email, index) => {
-                acc[`:email${index + 1}`] = {S: email.followee_email.S}
-                return acc
-            }, {});
-            const followingGroupsAttributes = followingGroups.Items.reduce((acc, groupId, index) => {
-                acc[`:groupId${index + 1}`] = {N: groupId.group_id.N}
-                return acc
-            }, {});
-            params.ExpressionAttributeValues = {
-                ...followingUsersAttributes,
-                ...followingGroupsAttributes
-            }
-            
-        }
-
-        // TODO: get the events created by student groups that the current following_email user follows
 
         try {
+            // get events created by users that the current following_email user follows
+            if (following_email) {
+                // get following users and groups
+                const followingUsers = await FollowModel.getFollowings(following_email);
+                const followingGroups = await FollowGroupModel.getFollowingGroups(following_email);
+
+                // get emails and group ids that user is following
+                const followingUserEmails = followingUsers.Items.map((_, index) => `:email${index + 1}`);
+                const followingGroupIds = followingGroups.Items.map((_, index) => `:groupId${index + 1}`);
+
+                // setup our filter
+                params.FilterExpression = `event_coordinator_email IN (${followingUserEmails}) OR event_coordinator_group_id IN (${followingGroupIds})`;
+                const followingUsersAttributes = followingUsers.Items.reduce((acc, email, index) => {
+                    acc[`:email${index + 1}`] = {S: email.followee_email.S}
+                    return acc
+                }, {});
+                const followingGroupsAttributes = followingGroups.Items.reduce((acc, groupId, index) => {
+                    acc[`:groupId${index + 1}`] = {N: groupId.group_id.N}
+                    return acc
+                }, {});
+                params.ExpressionAttributeValues = {
+                    ...followingUsersAttributes,
+                    ...followingGroupsAttributes
+                }
+            }
+
             const result = await this.scanTablePaginated(params, page, limit);
-            return result;
+
+            return result.sort((a, b) => Number(b.event_id.N) - Number(a.event_id.N));
         } catch (err) {
             console.error(err);
             return null;
