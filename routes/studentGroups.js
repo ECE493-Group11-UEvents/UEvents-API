@@ -25,5 +25,16 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+router.get('/', async (req, res) => {
+    const { search } = req.query;
+
+    const studentGroups = await StudentGroupModel.getAllStudentGroups(search);
+    if (studentGroups) {
+        res.send(studentGroups);
+    } else {
+        res.send('Failed to get student groups');
+    }
+});
+
 
 module.exports = router;
