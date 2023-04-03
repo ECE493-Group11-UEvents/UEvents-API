@@ -10,8 +10,12 @@ router.get('/user/:email', async (req, res) => {
     const email = req.params.email;
 
     const studentGroups = await StudentGroupModel.getStudentGroups(email);
-    if (studentGroups) {
-        res.send(studentGroups);
+    const followingGroups = await StudentGroupModel.getGroupsFollow(email);
+    let results = {}
+    results.studentGroups = studentGroups
+    results.followingGroups = followingGroups
+    if (results) {
+        res.send(results);
     } else {
         res.send('Failed to get student groups');
     }
@@ -35,6 +39,19 @@ router.get('/:id', async (req, res) => {
         res.send('Failed to get student group');
     }
 });
+
+router.get('/:id/name', async (req, res) => {
+    const id = req.params.id;
+
+    let name = await StudentGroupModel.getGroupName(id);
+    if(name){
+        res.send(name);
+
+    }else {
+        res.send('Failed to get student group name');
+    }
+
+})
 
 router.post('/edit/:group_id', upload.single('photo'), async (req, res) => {
     const { group_id } = req.params;
@@ -86,5 +103,6 @@ router.delete('/:group_id/unfollow', async (req, res) => {
         
     }
 });
+
 
 module.exports = router;

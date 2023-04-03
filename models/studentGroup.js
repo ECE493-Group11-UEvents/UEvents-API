@@ -42,6 +42,22 @@ class StudentGroupModel {
         }
     }
 
+    static async getGroupsFollow(email){
+        const params = {
+            TableName: 'FollowGroup'
+        }
+        try {
+            let followings = await client.scan(params).promise();
+            followings = followings.Items.filter(follow => {
+                return follow.email.S === email
+            })
+            return followings;
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    }
+
     static async getStudentGroupById(id) {
         const params = {
             TableName: tableName,
@@ -51,6 +67,23 @@ class StudentGroupModel {
         };
         try {
             return await client.getItem(params).promise();
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    }
+
+    static async getGroupName(id) {
+        const params = {
+            TableName: tableName,
+            Key: {
+                'group_id': { N: id },
+            }
+        };
+
+        try {
+            const group = await client.getItem(params).promise();
+            return group.Item.group_name;
         } catch (err) {
             console.error(err);
             return null;
