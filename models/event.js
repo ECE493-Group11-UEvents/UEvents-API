@@ -94,20 +94,27 @@ class EventModel {
         };
 
         try {
-            // get events created by users that the current following_email user follows
+            // get events RSVPed by the current following_email user follows
             if (following_email) {
-                // get following users and groups
-                const followingUsers = await FollowModel.getFollowings(following_email);
+                // get following users
+                const followers = await FollowModel.getFollowings(following_email);
+                // get events RSVPed by following users
+                const followingUsersEvents = await followers.Items.reduce(async (acc, follow) => {
+                    const events = await RSVPModel.getRSVPsByEmail(follow.followee_email.S);
+                    return [...acc, ...events];
+                }, []);
+                // get groups that user is following
                 const followingGroups = await FollowGroupModel.getFollowingGroups(following_email);
 
-                // get emails and group ids that user is following
-                const followingUserEmails = followingUsers.Items.map((_, index) => `:email${index + 1}`);
+                // get RSVPed events that following users have
+                const followingUserEventIds = followingUsersEvents.map((_, index) => `:eventId${index + 1}`);
+                // get group ids of groups that user is following
                 const followingGroupIds = followingGroups.Items.map((_, index) => `:groupId${index + 1}`);
 
                 // setup our filter
-                params.FilterExpression = `event_coordinator_email IN (${followingUserEmails}) OR event_coordinator_group_id IN (${followingGroupIds})`;
-                const followingUsersAttributes = followingUsers.Items.reduce((acc, email, index) => {
-                    acc[`:email${index + 1}`] = {S: email.followee_email.S}
+                params.FilterExpression = `event_id IN (${followingUserEventIds}) OR event_coordinator_group_id IN (${followingGroupIds})`;
+                const followingUsersAttributes = followingUsersEvents.reduce((acc, follow, index) => {
+                    acc[`:eventId${index + 1}`] = {N: follow.event_id.N}
                     return acc
                 }, {});
                 const followingGroupsAttributes = followingGroups.Items.reduce((acc, groupId, index) => {
