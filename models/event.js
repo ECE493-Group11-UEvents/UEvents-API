@@ -2,6 +2,7 @@ const AWS = require('aws-sdk');
 const uuid = require('uuid');
 const dotenv = require('dotenv');
 const RSVPModel = require('./rsvp');
+const FollowModel = require('./follow');
 dotenv.config();
 
 AWS.config.update({
@@ -85,11 +86,37 @@ class EventModel {
         return item;
     }
 
-    static async getAllEvents( page = 1, limit = 10, query = null ) {
+    static async getAllEvents( page = 1, limit = 10, following_email, searchText ) {
         const params = {
             TableName: "Events",
             Limit: limit
         };
+        
+        // get events created by users that the current following_email user follows
+        if (following_email) {
+            const followingUsers = await FollowModel.getFollowings(following_email);
+            // const followingGroups = await FollowModel.getFollowingGroups(following_email);
+            if (followingUsers.Count > 0) {
+                const followingUserEmails = followingUsers.Items.map((_, index) => `:email${index + 1}`);
+                // const followingGroupIds = followingGroups.Items.map((_, index) => `:groupId${index + 1}`);
+                // params.FilterExpression = `event_coordinator_email IN (${followingUserEmails}) OR event_coordinator_group_id IN (${followingGroupIds})`;
+                params.FilterExpression = `event_coordinator_email IN (${followingUserEmails})`;
+                const followingUsersAttributes = followingUsers.Items.reduce((acc, email, index) => {
+                    acc[`:email${index + 1}`] = {S: email.followee_email.S}
+                    return acc
+                }, {})
+                // const followingGroupsAttributes = followingGroups.Items.reduce((acc, groupId, index) => {
+                //     acc[`:groupId${index + 1}`] = {N: groupId.followee_group_id.N}
+                //     return acc
+                // }, {});
+                params.ExpressionAttributeValues = {
+                    ...followingUsersAttributes,
+                    // ...followingGroupsAttributes
+                }
+            }
+        }
+
+        // TODO: get the events created by student groups that the current following_email user follows
 
         try {
             const result = await this.scanTablePaginated(params, page, limit);
@@ -233,7 +260,7 @@ class EventModel {
         }
     };
 
-    static async scanTablePaginated( params, pageNumber, pageSize) {
+    static async scanTablePaginated( params, pageNumber, pageSize ) {
         let items = [];
         let pageCount = 0;
         let lastEvaluatedKey = undefined;
