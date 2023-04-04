@@ -51,19 +51,25 @@ class UserModel {
 
     /**
      * Create a new user with the specified data in the DynamoDB table and uploads the picture to the S3 Bucket.
-     * @param {String} email - The email address of the user.
-     * @param {String} first_name - The first name of the user.
-     * @param {String} last_name - The last name of the user.
-     * @param {String} password - The password for the user.
-     * @param {String} profile_picture - The URL of the user's profile picture.
-     * @param {Array} roles - An array of roles for the user.
-     * @returns {Object} - The newly created user object.
+     * @param {string} email - The email address of the user.
+     * @param {string} first_name - The first name of the user.
+     * @param {string} last_name - The last name of the user.
+     * @param {string} password - The password for the user.
+     * @param {boolean} isAdmin - Whether the user is an admin or not.
+     * @returns {Promise<Object>} - The newly created user object.
      */
-    static async create( email,first_name, last_name, password, roles = []) {
+    static async create( email, first_name, last_name, password, isAdmin) {
 
         const salt = await bcrypt.genSalt();
         var hash = await bcrypt.hash(password, salt);
         hash = hash.toString();
+
+        if(isAdmin === "false"){
+            isAdmin = false;
+        }
+        else{
+            isAdmin = true;
+        }
 
         const item = {
           "email": {"S": email},
@@ -71,7 +77,7 @@ class UserModel {
           "last_name": {"S": last_name},
           "password": {"S": hash},
           "profile_picture": {"S": DEFAULT_PROFILE_PICTURE},
-          "roles": {"L": roles},
+          "isAdmin": { "BOOL": isAdmin }
         };
     
         await client.putItem({ TableName: tableName, Item: item }).promise();

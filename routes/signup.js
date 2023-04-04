@@ -8,7 +8,7 @@ const upload = multer();
 // Handle sign-up requests
 router.post('/', async (req, res) => {
 
-  const { email, first_name, last_name, password } = req.body;
+  const { email, first_name, last_name, password , isAdmin} = req.body;
 
   try {
     // Check if user already exists
@@ -19,7 +19,7 @@ router.post('/', async (req, res) => {
     }
 
     // Create the user record
-    const newUser = await UserModel.create( email, first_name, last_name, password );
+    const newUser = await UserModel.create( email, first_name, last_name, password, isAdmin );
     res.send(newUser);
   } catch (err) {
     console.error(err);
