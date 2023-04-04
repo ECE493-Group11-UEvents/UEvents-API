@@ -148,7 +148,7 @@ class FollowModel {
      * @param {string} followee_email - The email address of the followee.
      * @returns {Promise<object|null>} - A Promise that resolves to an object containing a success message if the follow request was sent successfully, or null if an error occurs.
      */
-    static async follow(follower_email, followee_email){
+    static async follow(follower_email, followee_email){1
         try{
             var params = {
                 TableName: 'FollowUser',

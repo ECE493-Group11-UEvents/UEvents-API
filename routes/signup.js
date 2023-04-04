@@ -6,11 +6,9 @@ const multer = require('multer');
 const upload = multer();
 
 // Handle sign-up requests
-router.post('/', upload.single('photo'), async (req, res) => {
+router.post('/', async (req, res) => {
 
   const { email, first_name, last_name, password } = req.body;
-
-  const photo = req.file;
 
   try {
     // Check if user already exists
@@ -20,10 +18,8 @@ router.post('/', upload.single('photo'), async (req, res) => {
       return res.status(409).send('user already exists');
     }
 
-    console.log(JSON.stringify(req.body))
-    console.log(photo);
     // Create the user record
-    const newUser = await UserModel.create( email, first_name, last_name, password, photo );
+    const newUser = await UserModel.create( email, first_name, last_name, password );
     res.send(newUser);
   } catch (err) {
     console.error(err);
