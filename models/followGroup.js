@@ -104,6 +104,26 @@ class FollowGroupModel {
         }    
     }
 
+    static async getFollowingGroupsNames(followingGroups){
+        const params = {
+            RequestItems: {
+                'StudentGroups': {
+                    Keys: followingGroups.map(group => {
+                        return { "group_id": { N: group.group_id.N } }
+                    })
+                }
+            }
+        }
+        try {
+            const result = await client.batchGetItem(params).promise();
+            return result;
+        }
+        catch(err) {
+            console.error(err);
+            return null;
+        }
+    }
+
 }
 
 module.exports = FollowGroupModel;

@@ -48,7 +48,7 @@ router.get('/user/:email/names', async (req, res) => {
 
     const followingGroups = await FollowGroupModel.getFollowingGroups(email);
     if(followingGroups){
-        const followingNames = await FollowGroupModel.getFollowingGroupsNames(followingGroups);
+        const followingNames = await FollowGroupModel.getFollowingGroupsNames(followingGroups.Items);
         res.send(followingNames);
     } else {
         res.send('Failed to get student groups')
