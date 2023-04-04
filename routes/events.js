@@ -98,4 +98,25 @@ router.delete('/:event_id', async (req, res) => {
     }
 });
 
+if (process.env.NODE_ENV !== 'production') {
+    router.post('/TEST_EMAILER/:event_id', async (req, res) => {
+        const { event_id } = req.params;
+        const { subject, body } = req.body;
+        try {
+            EventModel.notifyUsers(event_id, subject, body)
+                .then((result) => {
+                    res.send(result);
+                })
+                .catch((err) => {
+                    console.error(err);
+                    res.status(500).send('Error sending email');
+                });
+        }
+        catch(err) {
+            console.error(err);
+            res.status(500).send('Error sending email');
+        }
+    });
+}
+
 module.exports = router;

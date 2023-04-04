@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const RSVPModel = require('./rsvp');
 const FollowModel = require('./follow');
 const FollowGroupModel = require('./followGroup');
+const Emailer = require('./tools/emailer');
 const {getNextId} = require('./tools/helper');
 dotenv.config();
 
@@ -286,6 +287,13 @@ class EventModel {
         } while (lastEvaluatedKey && pageCount < pageNumber);
 
         return items.slice(0, pageSize);
+    }
+
+    static async notifyUsers( event_id, subject, body ) {
+        const userRsvps = await RSVPModel.getRSVPsByEventId(event_id);
+        const arr_users = userRsvps.map((userRsvp) => userRsvp.email.S, []);
+        let res = await Emailer.sendEmail(arr_users, subject, body);
+        return res;
     }
 }
 
