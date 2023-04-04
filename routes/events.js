@@ -6,10 +6,10 @@ const multer = require('multer');
 const upload = multer();
 
 router.post('/',  upload.single('photo'), async (req, res) => {
-    const { title, description, location, studentGroup, dateTime, email } = req.body;
+    const { title, description, location, studentGroup, dateTime, email, eventTags } = req.body;
     const photo = req.file;
     try {
-        EventModel.createEvent(title, description, location, studentGroup, dateTime, email, photo)
+        EventModel.createEvent(title, description, location, studentGroup, dateTime, email, photo, eventTags)
             .then((result) => {
                 res.send(result);
             })
@@ -25,9 +25,9 @@ router.post('/',  upload.single('photo'), async (req, res) => {
 });
 
 router.get('/', async (req, res) => {
-    const { page, limit } = req.query;
+    const { page, limit, search, following_email, filter } = req.query;
     try {
-        EventModel.getAllEvents( page, limit )
+        EventModel.getAllEvents( page, limit, following_email, search, filter )
             .then((result) => {
                 res.send(result);
             })
@@ -62,10 +62,10 @@ router.get('/:event_id', async (req, res) => {
 
 router.post('/edit/:event_id', upload.single('photo'), async (req, res) => {
     const { event_id } = req.params;
-    const { title, description, location, dateTime, photo_url } = req.body;
+    const { title, description, location, dateTime, photo_url, eventTags } = req.body;
     const photo = req.file;
     try {
-        EventModel.editEvent(event_id, title, description, location, dateTime, photo, photo_url)
+        EventModel.editEvent(event_id, title, description, location, dateTime, photo, photo_url, eventTags)
             .then((result) => {
                 res.send(result);
             })

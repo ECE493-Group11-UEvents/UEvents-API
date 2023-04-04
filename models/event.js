@@ -2,6 +2,8 @@ const AWS = require('aws-sdk');
 const uuid = require('uuid');
 const dotenv = require('dotenv');
 const RSVPModel = require('./rsvp');
+const FollowModel = require('./follow');
+const FollowGroupModel = require('./followGroup')
 dotenv.config();
 
 AWS.config.update({
@@ -53,7 +55,7 @@ class EventModel {
         }
     }
 
-    static async createEvent(title, description, location, studentGroup, dateTime, email, photo){
+    static async createEvent(title, description, location, studentGroup, dateTime, email, photo, eventTags = []){
         let photo_url = "";
         if (photo){
             const params = {
@@ -69,6 +71,8 @@ class EventModel {
 
         let nextId = await this.getNextId();
 
+        console.log(JSON.parse(eventTags))
+
         const item = {
             "event_coordinator_email": {"S": email},
             "event_coordinator_group_id": {"N": studentGroup},
@@ -77,7 +81,8 @@ class EventModel {
             "event_location": {"S": location},
             "event_name": {"S": title},
             "event_photo": {"S": photo_url || DEFAULT_EVENT_PICTURE},
-            "event_id": {"N": nextId}
+            "event_id": {"N": nextId},
+            "event_tags": {"SS": typeof eventTags !== 'object' ? JSON.parse(eventTags) : eventTags}
         };
 
         await client.putItem({ TableName: "Events", Item: item }).promise();
@@ -85,15 +90,71 @@ class EventModel {
         return item;
     }
 
-    static async getAllEvents( page = 1, limit = 10 ) {
+    static async getAllEvents( page = 1, limit = 10, following_email, search, filter ) {
         const params = {
             TableName: "Events",
-            Limit: limit
+            Limit: limit,
         };
 
         try {
-            const result = await this.scanTablePaginated(params, page, limit);
-            return result;
+            // get events RSVPed by the current following_email user follows
+            if (following_email) {
+                // get following users
+                const followers = await FollowModel.getFollowings(following_email);
+                // get events RSVPed by following users
+                const followingUsersEvents = await followers.Items.reduce(async (acc, follow) => {
+                    const events = await RSVPModel.getRSVPsByEmail(follow.followee_email.S);
+                    return [...acc, ...events];
+                }, []);
+                // get groups that user is following
+                const followingGroups = await FollowGroupModel.getFollowingGroups(following_email);
+
+                // get RSVPed events that following users have
+                const followingUserEventIds = followingUsersEvents.map((_, index) => `:eventId${index + 1}`);
+                // get group ids of groups that user is following
+                const followingGroupIds = followingGroups.Items.map((_, index) => `:groupId${index + 1}`);
+
+                // setup our filter
+                params.FilterExpression = `event_id IN (${followingUserEventIds}) OR event_coordinator_group_id IN (${followingGroupIds})`;
+                const followingUsersAttributes = followingUsersEvents.reduce((acc, follow, index) => {
+                    acc[`:eventId${index + 1}`] = {N: follow.event_id.N}
+                    return acc
+                }, {});
+                const followingGroupsAttributes = followingGroups.Items.reduce((acc, groupId, index) => {
+                    acc[`:groupId${index + 1}`] = {N: groupId.group_id.N}
+                    return acc
+                }, {});
+                params.ExpressionAttributeValues = {
+                    ...followingUsersAttributes,
+                    ...followingGroupsAttributes
+                }
+            }
+
+            // get events that match the search query
+            if (search) {
+                const searchFilterExp = 'contains(event_name, :search) OR contains(event_description, :search) OR contains(event_location, :search)'
+                if (params.FilterExpression) {
+                    params.FilterExpression += ' AND ' + searchFilterExp;
+                } else {
+                    params.FilterExpression = searchFilterExp;
+                }
+                params.ExpressionAttributeValues = {
+                    ...params.ExpressionAttributeValues,
+                    ':search': {S: search}
+                }
+            }
+
+            let result = await this.scanTablePaginated(params, page, limit);
+
+            if (filter && filter.length > 0) {
+                result = result.filter((event) => {
+                    if (event['event_tags']) {
+                        return event['event_tags'].SS.some((tag) => filter.includes(tag))
+                    }
+                })
+            }
+
+            return result.sort((a, b) => Number(b.event_id.N) - Number(a.event_id.N));
         } catch (err) {
             console.error(err);
             return null;
@@ -128,7 +189,7 @@ class EventModel {
      * @param {string} link_to_photo
      * @returns 
      */
-    static async editEvent( id, title, description, location, dateTime, photo, link_to_photo = null ) {
+    static async editEvent( id, title, description, location, dateTime, photo, link_to_photo = null, eventTags = [] ) {
         let photo_url = "";
         // If a photo is provided, use that instead of the link to photo.
         if (photo){
@@ -146,31 +207,36 @@ class EventModel {
             photo_url = link_to_photo;
         }
 
+
+
         const item = {
             "event_date_time": {"S": dateTime},
             "event_description": {"S": description},
             "event_location": {"S": location},
             "event_name": {"S": title},
-            "event_photo": {"S": photo_url || DEFAULT_EVENT_PICTURE}
+            "event_photo": {"S": photo_url || DEFAULT_EVENT_PICTURE},
+            "event_tags": {"SS": typeof eventTags !== 'object' ? JSON.parse(eventTags) : eventTags}
         };
 
         const params = {
             TableName: 'Events',
             Key: { event_id:{ N: id } },
-            UpdateExpression: 'set #attr1 = :value1, #attr2 = :value2, #attr3 = :value3, #attr4 = :value4, #attr5 = :value5',
+            UpdateExpression: 'set #attr1 = :value1, #attr2 = :value2, #attr3 = :value3, #attr4 = :value4, #attr5 = :value5, #attr6 = :value6',
             ExpressionAttributeNames: {
               '#attr1': 'event_name',
               '#attr2': 'event_description',
               '#attr3': 'event_location',
               '#attr4': 'event_date_time',
               '#attr5': 'event_photo',
+              '#attr6': 'event_tags',
             },
             ExpressionAttributeValues: {
                 ':value1': {"S": title},
                 ':value2': {"S": description},
                 ':value3': {"S": location},
                 ':value4': {"S": dateTime},
-                ':value5': {"S": photo_url || DEFAULT_EVENT_PICTURE }
+                ':value5': {"S": photo_url || DEFAULT_EVENT_PICTURE },
+                ':value6': {"SS": typeof eventTags !== 'object' ? JSON.parse(eventTags) : eventTags}
             },
             ReturnValues: 'UPDATED_NEW'
         };
@@ -233,7 +299,7 @@ class EventModel {
         }
     };
 
-    static async scanTablePaginated( params, pageNumber, pageSize) {
+    static async scanTablePaginated( params, pageNumber, pageSize ) {
         let items = [];
         let pageCount = 0;
         let lastEvaluatedKey = undefined;

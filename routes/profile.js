@@ -162,4 +162,19 @@ router.put('/edit_picture', upload.single('photo'), async (req, res) => {
     
 });
 
+/**
+ * Route for getting all users based on search query
+ */
+router.get('/', async (req, res) => {
+    const {search} = req.query;
+    try {
+        let users = await UserModel.getAllUsers(search);
+        res.send(users);
+    }
+    catch(err) {
+        console.error(err);
+        res.status(500).send('Error');
+    }
+});
+
 module.exports = router;
