@@ -2,6 +2,8 @@ const AWS = require('aws-sdk');
 const uuid = require('uuid');
 const dotenv = require('dotenv');
 const RSVPModel = require('./rsvp');
+const FollowModel = require('./follow');
+const FollowGroupModel = require('./followGroup')
 dotenv.config();
 
 AWS.config.update({
@@ -85,15 +87,49 @@ class EventModel {
         return item;
     }
 
-    static async getAllEvents( page = 1, limit = 10 ) {
+    static async getAllEvents( page = 1, limit = 10, following_email, searchText ) {
         const params = {
             TableName: "Events",
-            Limit: limit
+            Limit: limit,
         };
 
         try {
+            // get events RSVPed by the current following_email user follows
+            if (following_email) {
+                // get following users
+                const followers = await FollowModel.getFollowings(following_email);
+                // get events RSVPed by following users
+                const followingUsersEvents = await followers.Items.reduce(async (acc, follow) => {
+                    const events = await RSVPModel.getRSVPsByEmail(follow.followee_email.S);
+                    return [...acc, ...events];
+                }, []);
+                // get groups that user is following
+                const followingGroups = await FollowGroupModel.getFollowingGroups(following_email);
+
+                // get RSVPed events that following users have
+                const followingUserEventIds = followingUsersEvents.map((_, index) => `:eventId${index + 1}`);
+                // get group ids of groups that user is following
+                const followingGroupIds = followingGroups.Items.map((_, index) => `:groupId${index + 1}`);
+
+                // setup our filter
+                params.FilterExpression = `event_id IN (${followingUserEventIds}) OR event_coordinator_group_id IN (${followingGroupIds})`;
+                const followingUsersAttributes = followingUsersEvents.reduce((acc, follow, index) => {
+                    acc[`:eventId${index + 1}`] = {N: follow.event_id.N}
+                    return acc
+                }, {});
+                const followingGroupsAttributes = followingGroups.Items.reduce((acc, groupId, index) => {
+                    acc[`:groupId${index + 1}`] = {N: groupId.group_id.N}
+                    return acc
+                }, {});
+                params.ExpressionAttributeValues = {
+                    ...followingUsersAttributes,
+                    ...followingGroupsAttributes
+                }
+            }
+
             const result = await this.scanTablePaginated(params, page, limit);
-            return result;
+
+            return result.sort((a, b) => Number(b.event_id.N) - Number(a.event_id.N));
         } catch (err) {
             console.error(err);
             return null;
@@ -233,7 +269,7 @@ class EventModel {
         }
     };
 
-    static async scanTablePaginated( params, pageNumber, pageSize) {
+    static async scanTablePaginated( params, pageNumber, pageSize ) {
         let items = [];
         let pageCount = 0;
         let lastEvaluatedKey = undefined;
