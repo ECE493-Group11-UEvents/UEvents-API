@@ -40,7 +40,7 @@ router.put('/approve', async (req, res) => {
 router.put('/reject', async (req, res) => {
     const {email, group_id} = req.body;
 
-    const result = await RequestModel.rejectRequest(email, group_id, group_name);
+    const result = await RequestModel.rejectRequest(email, group_id);
     if (result) {
         res.send("Successfuly rejected the request");
     } else {
