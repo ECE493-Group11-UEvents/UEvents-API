@@ -87,7 +87,7 @@ class EventModel {
         return item;
     }
 
-    static async getAllEvents( page = 1, limit = 10, following_email, search ) {
+    static async getAllEvents( page = 1, limit = 10, following_email, search, filter ) {
         const params = {
             TableName: "Events",
             Limit: limit,
@@ -134,7 +134,16 @@ class EventModel {
                 }
             }
 
-            const result = await this.scanTablePaginated(params, page, limit);
+            let result = await this.scanTablePaginated(params, page, limit);
+
+            if (filter) {
+                result = result.filter((event) => {
+                    console.log(event)
+                    if (event['event_tags']) {
+                        return event['event_tags'].SS.includes(filter);
+                    }
+                })
+            }
 
             return result.sort((a, b) => Number(b.event_id.N) - Number(a.event_id.N));
         } catch (err) {
