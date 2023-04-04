@@ -52,21 +52,37 @@ class RequestModel {
      * @param {string} description - The description of the student group.
      * @param {number} id - The ID of the student group.
      * @param {string} group_name - The name of the student group.
+     * @param {string|null} group_id - The ID of the student group IF the student group already exists.
      * @returns {Promise<object|null>} - A Promise that resolves to an object containing the results of the request creation, or null if an error occurred.
      */
-    static async requestStudentGroup(email, description, group_name){
+    static async requestStudentGroup(email, description, group_name, group_id){
 
         try{
-            let nextId = await getNextId("StudentGroups", client);
+            let groupDetails = {
+                description: description,
+                group_name: group_name,
+                email: email
+            };
+
+            if (group_id) {
+                const existingGroup = await StudentGroupModel.getStudentGroupById(group_id);
+                groupDetails.group_name = existingGroup?.group_name?.S || group_name;
+                groupDetails.group_id = existingGroup?.group_id?.N || await getNextId("StudentGroups", client);
+            }
+            else {
+                groupDetails.group_id = await getNextId("StudentGroups", client);
+            }
+
+            if(!nextId) throw new Error("Failed to get next ID for student group. Likely invalid group id.");
 
             var params = {
                 TableName: tableName,
                 Item: {
-                    'email': { S: email },
-                    'group_id': { N: nextId},
+                    'email': { S: groupDetails.email },
+                    'group_id': { N: groupDetails.group_id},
                     'decision': { S: "pending"},
-                    'description': { S: description },
-                    'group_name': {S: group_name}
+                    'description': { S: groupDetails.description },
+                    'group_name': {S: groupDetails.group_name}
                 }
             };
             
