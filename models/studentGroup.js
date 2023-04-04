@@ -17,20 +17,25 @@ const tableName = 'StudentGroups';
 
 class StudentGroupModel {
 
+    /**
+     * Check if a request with a specific group ID exists in the 'Requests' table.
+     * @param {number} id - The ID of the group to check for in the 'Requests' table.
+     * @returns {Promise<boolean|null>} - A Promise that resolves to a boolean indicating whether the request exists, or null if an error occurred.
+     */
     static async requestIdExists(id){
         try{
 
             var params = {
                 TableName: 'Requests',
-                IndexName: 'group_id-email-index',
+                IndexName: 'group_id-index',
                 KeyConditionExpression: 'group_id = :id',
                 ExpressionAttributeValues: {
-                    ':id': { N: id }
+                    ':id': { N: id.toString() }
                 }
             }
 
             const result = await client.query(params).promise();
-            console.log(result);
+
             if(result.Items.length === 0){
                 return false;
             }
@@ -42,6 +47,14 @@ class StudentGroupModel {
         }
     }
 
+    /**
+     * Create a new request in the 'Requests' table for a specific student group.
+     * @param {string} email - The email address of the requester.
+     * @param {string} description - The description of the student group.
+     * @param {number} id - The ID of the student group.
+     * @param {string} group_name - The name of the student group.
+     * @returns {Promise<object|null>} - A Promise that resolves to an object containing the results of the request creation, or null if an error occurred.
+     */
     static async requestStudentGroup(email, description, id, group_name){
 
         try{
@@ -49,11 +62,10 @@ class StudentGroupModel {
             if(id == -1){
                 
                 var random_id = Math.floor(Math.random() * -100000); 
-                console.log(random_id);
-                console.log(await this.requestIdExists(id));
-                // while(await this.requestIdExists(id)){
-                //     random_id = Math.floor(Math.random() * 100000); 
-                // }
+
+                while(await this.requestIdExists(random_id)){
+                    random_id = Math.floor(Math.random() * -100000); 
+                }
 
                 var params = {
                     TableName: 'Requests',
