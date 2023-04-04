@@ -13,26 +13,38 @@ const client = new AWS.DynamoDB();
 class FollowGroupModel {
 
     static async getFollowers(group_id){
-        // try{
-        //     // getting the followers that are accepeted
-        //     var params = {
-        //         TableName: 'FollowUser',
-        //         IndexName: 'followee_email-index',
-        //         KeyConditionExpression: 'followee_email = :followeeEmail',
-        //         FilterExpression: 'followee_confirm = :confirm',
-        //         ExpressionAttributeValues: {
-        //           ':followeeEmail': { S: email },
-        //           ':confirm': { BOOL: true }
-        //         }
-        //     };
+        const params = {
+            TableName: 'FollowGroup',
+            FilterExpression: 'group_id = :group_id',
+            ExpressionAttributeValues: {
+                ":group_id": { N: group_id },
+            }
+        };
 
-        //     var result = await client.query(params).promise();
-        //     return result;
-        // }
-        // catch(err){
-        //     console.error(err);
-        //     return null;
-        // }
+        try {
+            const result = await client.scan(params).promise();
+            return result;
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    }
+
+    static async isFollowing(group_id, follower){
+        const params = {
+            TableName: "FollowGroup"
+        };
+
+        try {
+            let result = await client.scan(params).promise();
+            result = result.Items.filter(user => {
+                return user.group_id.N === group_id & user.email.S === follower
+            })
+            return result.length > 0;
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
     }
 
     static async getFollowingGroups(email) {
@@ -54,42 +66,42 @@ class FollowGroupModel {
     }
 
     static async follow(email, group_id){
-        // try{
-        //     var params = {
-        //         TableName: 'FollowUser',
-        //         Item: {
-        //         follower_email: { S: follower_email },
-        //         followee_email: { S: followee_email },
-        //         followee_confirm: { BOOL: false }
-        //         },
-        //     };
+        try{
+            var params = {
+                TableName: 'FollowGroup',
+                Item: {
+                    email: { S: email },
+                    group_id: { N: group_id },
+                },
+            };
 
-        //     await client.putItem(params).promise();
+            console.log(params)
+            await client.putItem(params).promise();
 
-        //     return { message: `Successfully followed ${followee_email}` };
-        // }
-        // catch(err){
-        //     console.error(err);
-        //     return null;
-        // }
+            return { message: `Successfully followed ${group_id}` };
+        }
+        catch(err){
+            console.error(err);
+            return null;
+        }
     }
 
     static async unfollow(email, group_id){
-        // try{
-        //     var params = {
-        //         TableName: 'FollowUser',
-        //         Key: {
-        //           follower_email: { S: follower_email },
-        //           followee_email: { S: followee_email }
-        //         }
-        //       };
-        //       await client.deleteItem(params).promise();
-        //       return { message: `Successfully unfollowed ${followee_email}` };
-        // }
-        // catch(err){
-        //     console.error(err);
-        //     return null;
-        // }    
+        try{
+            var params = {
+                TableName: 'FollowGroup',
+                Key: {
+                  group_id: { N: group_id },
+                  email: { S: email }
+                }
+              };
+              await client.deleteItem(params).promise();
+              return { message: `Successfully unfollowed ${group_id}` };
+        }
+        catch(err){
+            console.error(err);
+            return null;
+        }    
     }
 
 }
