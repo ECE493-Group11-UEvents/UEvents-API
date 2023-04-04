@@ -136,11 +136,10 @@ class EventModel {
 
             let result = await this.scanTablePaginated(params, page, limit);
 
-            if (filter) {
+            if (filter && filter.length > 0) {
                 result = result.filter((event) => {
-                    console.log(event)
                     if (event['event_tags']) {
-                        return event['event_tags'].SS.includes(filter);
+                        return event['event_tags'].SS.some((tag) => filter.includes(tag))
                     }
                 })
             }
