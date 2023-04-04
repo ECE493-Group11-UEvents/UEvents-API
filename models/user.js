@@ -280,6 +280,35 @@ class UserModel {
             return "User does not exist";
         }
     }
+
+    /**
+     * function for getting all users with optional search parameter on user's first name, last name, or email'
+     * @param {string} search 
+     * @returns 
+     */
+    static async getAllUsers(search) {
+        try {
+            var params = {
+                TableName: tableName,
+                ProjectionExpression: 'email, first_name, last_name, profile_picture'
+            };
+
+            if(search){
+                params.FilterExpression = "contains(first_name, :search) OR contains(last_name, :search) OR contains(email, :search)";
+                params.ExpressionAttributeValues = {
+                    ":search": {S: search}
+                }
+            }
+
+            var result = await client.scan(params).promise();
+
+            return result.Items;
+        }
+        catch(err){
+            console.error(err);
+            return null;
+        }
+    }
 }
 
 module.exports = UserModel;

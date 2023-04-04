@@ -187,6 +187,26 @@ class StudentGroupModel {
             return null;
         }
     };
+    
+    static async getAllStudentGroups(search) {
+        const params = {
+            TableName: tableName,
+        };
+
+        if (search) {
+            params.FilterExpression = 'contains(group_name, :search) OR contains(description, :search)';
+            params.ExpressionAttributeValues = {
+                ':search': { S: search },
+            };
+        }
+
+        try {
+            return await client.scan(params).promise();
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    };
 
     static async getFollowers(group_id){
         const params = {
