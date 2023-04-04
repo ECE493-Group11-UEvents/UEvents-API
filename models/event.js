@@ -55,7 +55,7 @@ class EventModel {
         }
     }
 
-    static async createEvent(title, description, location, studentGroup, dateTime, email, photo){
+    static async createEvent(title, description, location, studentGroup, dateTime, email, photo, eventTags = []){
         let photo_url = "";
         if (photo){
             const params = {
@@ -71,6 +71,8 @@ class EventModel {
 
         let nextId = await this.getNextId();
 
+        console.log(JSON.parse(eventTags))
+
         const item = {
             "event_coordinator_email": {"S": email},
             "event_coordinator_group_id": {"N": studentGroup},
@@ -79,7 +81,8 @@ class EventModel {
             "event_location": {"S": location},
             "event_name": {"S": title},
             "event_photo": {"S": photo_url || DEFAULT_EVENT_PICTURE},
-            "event_id": {"N": nextId}
+            "event_id": {"N": nextId},
+            "event_tags": {"SS": typeof eventTags !== 'object' ? JSON.parse(eventTags) : eventTags}
         };
 
         await client.putItem({ TableName: "Events", Item: item }).promise();
@@ -179,7 +182,7 @@ class EventModel {
      * @param {string} link_to_photo
      * @returns 
      */
-    static async editEvent( id, title, description, location, dateTime, photo, link_to_photo = null ) {
+    static async editEvent( id, title, description, location, dateTime, photo, link_to_photo = null, eventTags = [] ) {
         let photo_url = "";
         // If a photo is provided, use that instead of the link to photo.
         if (photo){
@@ -197,31 +200,36 @@ class EventModel {
             photo_url = link_to_photo;
         }
 
+
+
         const item = {
             "event_date_time": {"S": dateTime},
             "event_description": {"S": description},
             "event_location": {"S": location},
             "event_name": {"S": title},
-            "event_photo": {"S": photo_url || DEFAULT_EVENT_PICTURE}
+            "event_photo": {"S": photo_url || DEFAULT_EVENT_PICTURE},
+            "event_tags": {"SS": typeof eventTags !== 'object' ? JSON.parse(eventTags) : eventTags}
         };
 
         const params = {
             TableName: 'Events',
             Key: { event_id:{ N: id } },
-            UpdateExpression: 'set #attr1 = :value1, #attr2 = :value2, #attr3 = :value3, #attr4 = :value4, #attr5 = :value5',
+            UpdateExpression: 'set #attr1 = :value1, #attr2 = :value2, #attr3 = :value3, #attr4 = :value4, #attr5 = :value5, #attr6 = :value6',
             ExpressionAttributeNames: {
               '#attr1': 'event_name',
               '#attr2': 'event_description',
               '#attr3': 'event_location',
               '#attr4': 'event_date_time',
               '#attr5': 'event_photo',
+              '#attr6': 'event_tags',
             },
             ExpressionAttributeValues: {
                 ':value1': {"S": title},
                 ':value2': {"S": description},
                 ':value3': {"S": location},
                 ':value4': {"S": dateTime},
-                ':value5': {"S": photo_url || DEFAULT_EVENT_PICTURE }
+                ':value5': {"S": photo_url || DEFAULT_EVENT_PICTURE },
+                ':value6': {"SS": typeof eventTags !== 'object' ? JSON.parse(eventTags) : eventTags}
             },
             ReturnValues: 'UPDATED_NEW'
         };
