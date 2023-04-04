@@ -1,7 +1,5 @@
 const AWS = require('aws-sdk');
 const MemberGroupModel = require('./memberGroup');
-const { v4: uuidv4 } = require('uuid');
-const e = require('express');
 const uuid = require('uuid');
 
 const DEFAULT_EVENT_PICTURE = `https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/default_event_photo.png`;
@@ -20,196 +18,6 @@ const s3 = new AWS.S3();
 const tableName = 'StudentGroups';
 
 class StudentGroupModel {
-
-    /**
-     * Check if a request with a specific group ID exists in the 'Requests' table.
-     * @param {number} id - The ID of the group to check for in the 'Requests' table.
-     * @returns {Promise<boolean|null>} - A Promise that resolves to a boolean indicating whether the request exists, or null if an error occurred.
-     */
-    static async requestIdExists(id){
-        try{
-
-            var params = {
-                TableName: 'Requests',
-                IndexName: 'group_id-index',
-                KeyConditionExpression: 'group_id = :id',
-                ExpressionAttributeValues: {
-                    ':id': { N: id.toString() }
-                }
-            }
-
-            const result = await client.query(params).promise();
-
-            if(result.Items.length === 0){
-                return false;
-            }
-            return true;
-        }
-        catch (err) {
-            console.error(err);
-            return null;
-        }
-    }
-
-    /**
-     * Create a new request in the 'Requests' table for a specific student group.
-     * @param {string} email - The email address of the requester.
-     * @param {string} description - The description of the student group.
-     * @param {number} id - The ID of the student group.
-     * @param {string} group_name - The name of the student group.
-     * @returns {Promise<object|null>} - A Promise that resolves to an object containing the results of the request creation, or null if an error occurred.
-     */
-    static async requestStudentGroup(email, description, id, group_name){
-
-        try{
-
-            if(id == -1){
-                
-                var random_id = Math.floor(Math.random() * -100000); 
-
-                while(await this.requestIdExists(random_id)){
-                    random_id = Math.floor(Math.random() * -100000); 
-                }
-
-                var params = {
-                    TableName: 'Requests',
-                    Item: {
-                    'email': { S: email },
-                    'group_id': { N: random_id.toString()},
-                    'decision': { S: "pending"},
-                    'description': { S: description },
-                    'group_name': {S: group_name}
-                    }
-                };
-            }
-            else{
-                var params = {
-                    TableName: 'Requests',
-                    Item: {
-                    'email': { S: email },
-                    'group_id': { N: id},
-                    'decision': { S: "pending"},
-                    'description': { S: description },
-                    'group_name': {S: group_name}
-                    }
-                };
-            }
-            
-            const result = await client.putItem(params).promise();
-            return result;
-        }
-        catch (err) {
-            console.error(err);
-            return null;
-        }
-    }
-
-    /**
-     * Retrieve all requests with a specific decision status from the 'Requests' table.
-     * @param {string} status - The decision status to filter requests by.
-     * @returns {Promise<object>} - A Promise that resolves to an object containing the results of the query.
-     */
-    static async viewRequests(status){
-        
-        var params = {
-            TableName: 'Requests',
-            IndexName: 'decision-index',
-            KeyConditionExpression: 'decision = :decision',
-            ExpressionAttributeValues: {
-                ':decision': { S: status }
-            }
-        }
-
-        const result = await client.query(params).promise();
-        return result;
-    }
-
-    /**
-     * Reject a request in the 'Requests' table for a specific email and group ID.
-     * @param {string} email - The email address of the requester.
-     * @param {number} group_id - The ID of the group the requester is requesting to join.
-     * @returns {Promise<boolean>} - A Promise that resolves to a boolean indicating whether the request was successfully rejected.
-     */
-    static async rejectRequest(email, group_id){
-        var params = {
-            TableName: 'Requests',
-            Key: {
-                email: { S: email },
-                group_id: { N: group_id },
-            },
-            UpdateExpression: 'set #decision = :decision',
-            ExpressionAttributeNames: {
-            '#decision': 'decision'
-            },
-            ExpressionAttributeValues: {
-                ':decision': { S: 'rejected' }
-            },
-            ReturnValues: 'ALL_NEW'
-        }
-
-        try {
-            const result = await client.updateItem(params).promise();
-            return result.Attributes !== undefined;
-        } catch (error) {
-            console.error('Error rejecting request:', error);
-            return false;
-        }
-    }
-
-    /**
-     * Accept a request in the 'Requests' table for a specific email and group ID, adding the requester as a member of the group.
-     * @param {string} email - The email address of the requester.
-     * @param {number} id - The ID of the group the requester is requesting to join.
-     * @param {string} name - The name of the group the requester is requesting to join.
-     * @returns {Promise<boolean>} - A Promise that resolves to a boolean indicating whether the request was successfully accepted and the requester added as a member of the group.
-     */
-    static async acceptRequest(email, id, name){
-
-        id = parseInt(id);
-
-        // creating a group if it doesn't exist'
-        if(id < 0){
-            var params = {
-                TableName: 'StudentGroups',
-                Item: {
-                  group_id: {N: Math.abs(id).toString()},
-                  group_name: {S: name},
-                  group_photo: {S: DEFAULT_PROFILE_PICTURE},
-                },
-              };
-            await client.putItem(params).promise();
-        }
-
-        // adding the coordinator
-        var params = {
-            TableName: 'MemberGroup',
-            Item: {
-                email: {S: email},
-                group_id: {N: Math.abs(id).toString()},
-            }
-        }
-        await client.putItem(params).promise();
-
-        // approving the request
-        params = {
-            TableName: 'Requests',
-            Key: {
-                email: { S: email },
-                group_id: { N: id.toString() },
-            },
-            UpdateExpression: 'set #decision = :decision',
-            ExpressionAttributeNames: {
-            '#decision': 'decision'
-            },
-            ExpressionAttributeValues: {
-                ':decision': { S: 'approved' }
-            },
-            ReturnValues: 'ALL_NEW'
-        }
-        await client.updateItem(params).promise();
-
-        return true;
-    }
 
     /**
      * Gets the student groups the user belongs to
@@ -402,6 +210,27 @@ class StudentGroupModel {
             return null;
         }
     };
+
+    static async createStudentGroup(group_name, group_id, email) {
+        const params = {
+            TableName: tableName,
+            Item: {
+                group_id: { N: group_id },
+                group_name: { S: group_name },
+                description: { S: "" },
+                group_photo: { S: DEFAULT_PROFILE_PICTURE },
+            }
+        };
+
+        try {
+            await client.putItem(params).promise();
+            await MemberGroupModel.addGroupMember(email, group_id);
+            return params.Item;
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    }
 }
 
 module.exports = StudentGroupModel;

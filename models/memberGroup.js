@@ -89,6 +89,24 @@ class MemberGroupModel {
             return null;
         }
     }
+
+    static async addGroupMember(email, id){
+        try{
+            var params = {
+                TableName: tableName,
+                Item: {
+                    "email": { "S": email },
+                    "group_id": { "N": id.toString() }
+                }
+            };
+            const result = await client.putItem(params).promise();
+            return result;
+        }
+        catch (err) {
+            console.error(err);
+            return null;
+        }
+    }
 }
 
 module.exports = MemberGroupModel;

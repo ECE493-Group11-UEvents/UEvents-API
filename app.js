@@ -12,6 +12,7 @@ var studentGroupRoute = require('./routes/studentGroups');
 var studentGroupFollowRoute = require('./routes/followGroup');
 var memberGroupRoute = require('./routes/memberGroups');
 var RSVPRoute = require('./routes/rsvpRoute');
+var requestsRoute = require('./routes/requests');
 
 const basicAuth = require('./middleware/BasicAuth');
 const cors = require('cors');
@@ -46,6 +47,7 @@ app.use(API_PREFIX + '/events', eventRoute);
 app.use(API_PREFIX + '/studentGroups', studentGroupRoute);
 app.use(API_PREFIX + '/followGroup', studentGroupFollowRoute);
 app.use(API_PREFIX + '/memberGroups', memberGroupRoute);
+app.use(API_PREFIX + '/requests', requestsRoute);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

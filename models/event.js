@@ -3,7 +3,8 @@ const uuid = require('uuid');
 const dotenv = require('dotenv');
 const RSVPModel = require('./rsvp');
 const FollowModel = require('./follow');
-const FollowGroupModel = require('./followGroup')
+const FollowGroupModel = require('./followGroup');
+const {getNextId} = require('./tools/helper');
 dotenv.config();
 
 AWS.config.update({
@@ -69,7 +70,7 @@ class EventModel {
             photo_url = `https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/${params.Key}`;
         }
 
-        let nextId = await this.getNextId();
+        let nextId = await getNextId("Events", client);
 
         console.log(JSON.parse(eventTags))
 
@@ -270,34 +271,6 @@ class EventModel {
             return null;
         }
     }
-
-    /**
-     * Helper function for getting the next unique ID to use for a new item
-     * @returns {Promise<string | null>} The next ID to use
-     */
-    static async getNextId() {
-        // Increment the value of the LAST_USED_ID item
-        const updateParams = {
-            TableName: 'COUNTERS',
-            Key: { "table_name": {'S': 'Events'} },
-            UpdateExpression: 'SET #value = #value + :incr',
-            ExpressionAttributeNames: {
-                '#value': 'LAST_USED_ID',
-            },
-            ExpressionAttributeValues: {
-                ':incr': {"N": "1"},
-            },
-            ReturnValues: 'UPDATED_NEW',
-        };
-      
-        try {
-            const updatedData = await client.updateItem(updateParams).promise();
-            return updatedData.Attributes.LAST_USED_ID.N;
-        } catch (err) {
-            console.error('Error getting the next ID:', JSON.stringify(err));
-            throw err;
-        }
-    };
 
     static async scanTablePaginated( params, pageNumber, pageSize ) {
         let items = [];
