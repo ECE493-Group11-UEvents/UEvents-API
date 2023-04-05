@@ -66,15 +66,13 @@ class RequestModel {
 
             if (group_id) {
                 const existingGroup = await StudentGroupModel.getStudentGroupById(group_id);
-                groupDetails.group_name = existingGroup?.group_name?.S || group_name;
-                groupDetails.group_id = existingGroup?.group_id?.N || await getNextId("StudentGroups", client);
+                groupDetails.group_name = existingGroup?.Item?.group_name?.S || group_name;
+                groupDetails.group_id = existingGroup?.Item?.group_id?.N || await getNextId("StudentGroups", client);
             }
             else {
                 groupDetails.group_id = await getNextId("StudentGroups", client);
             }
-
-            if(!nextId) throw new Error("Failed to get next ID for student group. Likely invalid group id.");
-
+            
             var params = {
                 TableName: tableName,
                 Item: {
