@@ -27,7 +27,7 @@ router.get('/:id', async (req, res) => {
 
         const events = await StudentGroupModel.getHostedEvents(id);
         // TODO: add the members of the group as well
-        studentGroup.events = events
+        if (studentGroup) studentGroup.events = events
         res.send(studentGroup);
     } else {
         res.send('Failed to get student group');

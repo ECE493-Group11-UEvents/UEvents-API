@@ -10,12 +10,15 @@ AWS.config.update({
   secretAccessKey: process.env.DB_SECRET_ACCESS_KEY,
 });
 
+const DEFAULT_PROFILE_PICTURE = `https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/default_user_photo.jpg`;
+
 const client = new AWS.DynamoDB();
 const s3 = new AWS.S3();
 
 const tableName = 'StudentGroups';
 
 class StudentGroupModel {
+
     /**
      * Gets the student groups the user belongs to
      * @param {string} email email of the user
@@ -24,8 +27,9 @@ class StudentGroupModel {
     static async getStudentGroups(email){
         let keys = [];
         const memberGroups = await MemberGroupModel.getMemberGroups(email);
+        if (memberGroups.Count === 0) return null;
         for (let i = 0; i < memberGroups.Count; i++) {
-            keys.push({ 'group_id': {"N": memberGroups.Items[i].group_id.N} });
+            if (memberGroups.Count > 0) keys.push({ 'group_id': {"N": memberGroups.Items[i].group_id.N} });
         }
         const batchGetParams = {
             RequestItems: {
@@ -207,6 +211,27 @@ class StudentGroupModel {
             return null;
         }
     };
+
+    static async createStudentGroup(group_name, group_id, email) {
+        const params = {
+            TableName: tableName,
+            Item: {
+                group_id: { N: group_id },
+                group_name: { S: group_name },
+                description: { S: "" },
+                group_photo: { S: DEFAULT_PROFILE_PICTURE },
+            }
+        };
+
+        try {
+            await client.putItem(params).promise();
+            await MemberGroupModel.addGroupMember(email, group_id);
+            return params.Item;
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    }
 }
 
 module.exports = StudentGroupModel;
