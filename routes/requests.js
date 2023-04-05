@@ -3,9 +3,9 @@ const router = express.Router();
 const RequestModel = require('../models/request');
 
 router.post('/', async (req, res) => {
-    const {email, description, group_name} = req.body;
+    const {email, description, group_name, group_id} = req.body;
 
-    const studentGroup = await RequestModel.requestStudentGroup(email, description, group_name);
+    const studentGroup = await RequestModel.requestStudentGroup(email, description, group_name, group_id);
     if (studentGroup) {
         res.send(studentGroup.Item);
     } else {
