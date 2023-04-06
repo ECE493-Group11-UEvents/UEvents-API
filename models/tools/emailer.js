@@ -58,27 +58,33 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 class Emailer {
     /**
      * 
-     * @param {[string]} email 
+     * @param {[{}]} emailUserData includes email, first_name, event_name, and body
      * @param {string} subject 
      * @param {string} body 
      */
     static async sendEmail(emailUserData = [], subject, body){
-        const msgs = emailUserData.map((userData) => {
+        const recipients = emailUserData.map((userData) => {
             return {
                 to: userData.email,
-                from: EMAIL_ADDRESS,
-                subject: subject,
-                templateId: EDIT_TEMPLATE_ID,
                 dynamic_template_data: {
                     first_name: userData.first_name,
                     event_name: userData.event_name,
                     body: body,
                 },
+                "subject": subject,
             };
-        }, []);
+        });
+
+        const msg = {
+            personalizations: recipients,
+            from: EMAIL_ADDRESS,
+            templateId: EDIT_TEMPLATE_ID
+        }
+
+        console.log(msg);
 
         try {
-            let res = await sgMail.send(msgs, false);
+            let res = await sgMail.send(msg);
             return res;
         }
         catch(err){

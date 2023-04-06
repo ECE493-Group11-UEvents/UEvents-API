@@ -297,14 +297,15 @@ class EventModel {
             const event = await EventModel.getEventById(event_id);
             return {
                 email: userRsvp.email.S,
-                first_name: user.first_name.S,
+                first_name: user[0].Item.first_name.S,
                 event_name: event.event_name.S,
                 body: body
             }
         }, []);
-        console.log(arr_users);
-        // let res = await Emailer.sendEmail(arr_users, subject, body);
-        // return res;
+        const promises = await Promise.all(arr_users);
+        console.log(promises);
+        let res = await Emailer.sendEmail(promises, subject, body);
+        return res;
     }
 }
 
