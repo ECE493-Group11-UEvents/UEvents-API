@@ -334,8 +334,18 @@ class EventModel {
             }
         }, []);
         const promises = await Promise.all(arr_users);
-        let res = promises ? await Emailer.sendEmail(promises, subject, body) : null;
-        return res;
+        if (promises) {
+            Emailer.sendEmail(promises, subject, body)
+                .then((res) => {
+                    console.log(res);
+                    return res;
+                })
+                .catch((err) => {
+                    console.error(err);
+                    return err;
+                });
+        }
+        return null;
     }
 
     static async notifyUsersDelete( subject, body, event ) {
@@ -350,8 +360,18 @@ class EventModel {
             }
         }, []);
         const promises = await Promise.all(arr_users);
-        let res = promises ? await Emailer.sendEmail(promises, subject, body) : null;
-        return res;
+        if (promises) {
+            Emailer.sendEmail(promises, subject, body)
+                .then((res) => {
+                    console.log(res);
+                    return res;
+                })
+                .catch((err) => {
+                    console.error(err);
+                    return err;
+                });
+        }
+        return null;
     }
 }
 
