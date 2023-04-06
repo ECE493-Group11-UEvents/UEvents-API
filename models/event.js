@@ -262,7 +262,7 @@ class EventModel {
                                 return acc;
                             }, {});
                             const body = `The following fields have been changed: ${changedKeys.join(', ')}`
-                            self.notifyUsers(id, "Event Updated", body);
+                            this.notifyUsers(id, "Event Updated", body);
                         }
                     }
 
