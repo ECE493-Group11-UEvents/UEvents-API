@@ -65,7 +65,7 @@ router.post('/edit/:event_id', upload.single('photo'), async (req, res) => {
     const { title, description, location, dateTime, photo_url, eventTags, notification } = req.body;
     const photo = req.file;
     try {
-        EventModel.editEvent(event_id, title, description, location, dateTime, photo, photo_url, eventTags, notification)
+        EventModel.editEvent(event_id, title, description, location, dateTime, photo, photo_url, eventTags, notification === 'true' ? true : false)
             .then((result) => {
                 res.send(result);
             })
@@ -84,7 +84,7 @@ router.delete('/:event_id', async (req, res) => {
     const { event_id } = req.params;
     const { notification } = req.body;
     try {
-        EventModel.deleteEvent(event_id, notification)
+        EventModel.deleteEvent(event_id, notification === 'true' ? true : false)
             .then((result) => {
                 res.send(result);
             })

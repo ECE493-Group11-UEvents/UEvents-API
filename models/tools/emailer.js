@@ -81,7 +81,7 @@ class Emailer {
             templateId: EDIT_TEMPLATE_ID
         }
 
-        console.log(msg);
+        // console.log(msg);
 
         try {
             let res = await sgMail.send(msg);
