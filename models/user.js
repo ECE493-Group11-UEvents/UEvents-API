@@ -55,8 +55,6 @@ class UserModel {
      * @param {String} first_name - The first name of the user.
      * @param {String} last_name - The last name of the user.
      * @param {String} password - The password for the user.
-     * @param {String} profile_picture - The URL of the user's profile picture.
-     * @param {Array} roles - An array of roles for the user.
      * @returns {Object} - The newly created user object.
      */
     static async create( email,first_name, last_name, password) {
