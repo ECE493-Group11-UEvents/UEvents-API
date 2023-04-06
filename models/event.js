@@ -257,15 +257,12 @@ class EventModel {
                             }
                         });
                         if (changedKeys.length > 0) {
-                            const changedItem = changedKeys.reduce((acc, key) => {
+                            const changedItems = changedKeys.reduce((acc, key) => {
                                 acc[key] = item[key];
                                 return acc;
                             }, {});
-                            const message = {
-                                title: 'Event Updated',
-                                body: `The event ${title} has been updated.`
-                            };
-                            NotificationService.sendNotificationToEventFollowers(id, message, changedItem);
+                            const body = `The following fields have been changed: ${changedKeys.join(', ')}`
+                            self.notifyUsers(id, "Event Updated", body);
                         }
                     }
 
