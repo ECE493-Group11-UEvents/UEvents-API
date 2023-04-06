@@ -192,7 +192,7 @@ class EventModel {
      * @param {string} link_to_photo
      * @returns 
      */
-    static async editEvent( id, title, description, location, dateTime, photo, link_to_photo = null, eventTags = [] ) {
+    static async editEvent( id, title, description, location, dateTime, photo, link_to_photo = null, eventTags = [], notification = false) {
         let photo_url = "";
         // If a photo is provided, use that instead of the link to photo.
         if (photo){
@@ -209,8 +209,6 @@ class EventModel {
         else if (link_to_photo.startsWith(`https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/`)) {
             photo_url = link_to_photo;
         }
-
-
 
         const item = {
             "event_date_time": {"S": dateTime},
@@ -241,17 +239,41 @@ class EventModel {
                 ':value5': {"S": photo_url || DEFAULT_EVENT_PICTURE },
                 ':value6': {"SS": typeof eventTags !== 'object' ? JSON.parse(eventTags) : eventTags}
             },
-            ReturnValues: 'UPDATED_NEW'
+            ReturnValues: 'UPDATED_OLD'
         };
 
         try {
             client.updateItem(params).promise()
                 .then((data) => {
                     console.log(data);
+                    // compare returned old data with new item data and send notification on changes
+
+                    if (notification) {
+                        const oldItem = data.Attributes;
+                        const keys = Object.keys(item);
+                        const changedKeys = keys.filter((key) => {
+                            if (oldItem[key] && item[key]) {
+                                return oldItem[key].S !== item[key].S;
+                            }
+                        });
+                        if (changedKeys.length > 0) {
+                            const changedItem = changedKeys.reduce((acc, key) => {
+                                acc[key] = item[key];
+                                return acc;
+                            }, {});
+                            const message = {
+                                title: 'Event Updated',
+                                body: `The event ${title} has been updated.`
+                            };
+                            NotificationService.sendNotificationToEventFollowers(id, message, changedItem);
+                        }
+                    }
+
                     return item;
                 })
                 .catch((err) => {
-                    return err
+                    console.error(err);
+                    return null;
                 });
         } catch (err) {
             console.error(err);
