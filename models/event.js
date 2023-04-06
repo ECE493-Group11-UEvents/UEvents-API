@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const RSVPModel = require('./rsvp');
 const FollowModel = require('./follow');
 const FollowGroupModel = require('./followGroup');
+const UserModel = require('./user');
 const Emailer = require('./tools/emailer');
 const {getNextId} = require('./tools/helper');
 dotenv.config();
@@ -291,9 +292,19 @@ class EventModel {
 
     static async notifyUsers( event_id, subject, body ) {
         const userRsvps = await RSVPModel.getRSVPsByEventId(event_id);
-        const arr_users = userRsvps.map((userRsvp) => userRsvp.email.S, []);
-        let res = await Emailer.sendEmail(arr_users, subject, body);
-        return res;
+        const arr_users = userRsvps.map(async (userRsvp) => {
+            const user = await UserModel.profile(userRsvp.email.S);
+            const event = await EventModel.getEventById(event_id);
+            return {
+                email: userRsvp.email.S,
+                first_name: user.first_name.S,
+                event_name: event.event_name.S,
+                body: body
+            }
+        }, []);
+        console.log(arr_users);
+        // let res = await Emailer.sendEmail(arr_users, subject, body);
+        // return res;
     }
 }
 

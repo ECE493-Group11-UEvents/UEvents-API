@@ -1,17 +1,59 @@
 const AWS = require('aws-sdk');
 const dotenv = require('dotenv');
+const sgMail = require('@sendgrid/mail');
 
 dotenv.config();
 
-const AWS_EMAIL_ADDRESS = process.env.AWS_EMAIL_ADDRESS;
+const EMAIL_ADDRESS = process.env.EMAIL_ADDRESS;
+const EDIT_TEMPLATE_ID = process.env.SENDGRID_EDIT_TEMPLATE_ID;
 
-AWS.config.update({
-    region: process.env.REGION,
-    accessKeyId: process.env.DB_ACCESS_KEY,
-    secretAccessKey: process.env.DB_SECRET_ACCESS_KEY,
-});
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-const ses = new AWS.SES();
+// AWS.config.update({
+//     region: process.env.REGION,
+//     accessKeyId: process.env.DB_ACCESS_KEY,
+//     secretAccessKey: process.env.DB_SECRET_ACCESS_KEY,
+// });
+
+// const ses = new AWS.SES();
+
+// class Emailer {
+//     /**
+//      * 
+//      * @param {[string]} email 
+//      * @param {string} subject 
+//      * @param {string} body 
+//      */
+//     static async sendEmail(email = [], subject, body){
+//         const params = {
+//             Destination: {
+//               ToAddresses: email
+//             },
+//             Message: {
+//                 Body: {
+//                     Text: {
+//                         Charset: 'UTF-8',
+//                         Data: body
+//                     },
+//                 },
+//                 Subject: {
+//                     Charset: 'UTF-8',
+//                     Data: subject,
+//                 },
+//             },
+//             Source: EMAIL_ADDRESS,
+//         };
+
+//         try {
+//             let res = await ses.sendEmail(params).promise();
+//             return res;
+//         }
+//         catch(err){
+//             console.log(err);
+//             return null;
+//         }
+//     }
+// }
 
 class Emailer {
     /**
@@ -20,28 +62,23 @@ class Emailer {
      * @param {string} subject 
      * @param {string} body 
      */
-    static async sendEmail(email = [], subject, body){
-        const params = {
-            Destination: {
-              ToAddresses: email
-            },
-            Message: {
-                Body: {
-                    Text: {
-                        Charset: 'UTF-8',
-                        Data: body
-                    },
+    static async sendEmail(emailUserData = [], subject, body){
+        const msgs = emailUserData.map((userData) => {
+            return {
+                to: userData.email,
+                from: EMAIL_ADDRESS,
+                subject: subject,
+                templateId: EDIT_TEMPLATE_ID,
+                dynamic_template_data: {
+                    first_name: userData.first_name,
+                    event_name: userData.event_name,
+                    body: body,
                 },
-                Subject: {
-                    Charset: 'UTF-8',
-                    Data: subject,
-                },
-            },
-            Source: AWS_EMAIL_ADDRESS,
-        };
+            };
+        }, []);
 
         try {
-            let res = await ses.sendEmail(params).promise();
+            let res = await sgMail.send(msgs, false);
             return res;
         }
         catch(err){
