@@ -119,7 +119,7 @@ class UserModel {
                 first_name: result.Item.first_name.S,
                 last_name: result.Item.last_name.S,
                 profile_picture: result.Item.profile_picture.S,
-                roles: result.Item.roles.L
+                is_admin: result.Item.is_admin.BOOL
               };
               return user;
             } else {
