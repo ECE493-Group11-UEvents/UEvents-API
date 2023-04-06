@@ -55,37 +55,22 @@ class UserModel {
      * @param {String} first_name - The first name of the user.
      * @param {String} last_name - The last name of the user.
      * @param {String} password - The password for the user.
-     * @param {String} profile_picture - The URL of the user's profile picture.
-     * @param {Array} roles - An array of roles for the user.
      * @returns {Object} - The newly created user object.
      */
-    static async create( email,first_name, last_name, password, photo, roles = []) {
+    static async create( email,first_name, last_name, password) {
 
         const salt = await bcrypt.genSalt();
         var hash = await bcrypt.hash(password, salt);
         hash = hash.toString();
 
-        var photo_url = "";
-
-        if (photo){
-            const params = {
-                Bucket: process.env.BUCKET_NAME,
-                Key: uuid.v4() + photo.originalname,
-                Body: photo.buffer,
-                ContentType: photo.mimetype,
-                ACL: 'public-read'
-            };
-            await s3.putObject(params).promise();
-            photo_url = `https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/${params.Key}`;
-        }
 
         const item = {
           "email": {"S": email},
           "first_name": {"S": first_name},
           "last_name": {"S": last_name},
           "password": {"S": hash},
-          "profile_picture": {"S": photo_url},
-          "roles": {"L": []},
+          "profile_picture": {"S": DEFAULT_PROFILE_PICTURE},
+          "is_admin": { "BOOL": false }
         };
     
         await client.putItem({ TableName: tableName, Item: item }).promise();
@@ -119,7 +104,7 @@ class UserModel {
                 first_name: result.Item.first_name.S,
                 last_name: result.Item.last_name.S,
                 profile_picture: result.Item.profile_picture.S,
-                roles: result.Item.roles.L
+                is_admin: result.Item.is_admin.BOOL
               };
               return user;
             } else {
