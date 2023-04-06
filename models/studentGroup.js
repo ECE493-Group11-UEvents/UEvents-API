@@ -27,8 +27,9 @@ class StudentGroupModel {
     static async getStudentGroups(email){
         let keys = [];
         const memberGroups = await MemberGroupModel.getMemberGroups(email);
+        if (memberGroups.Count === 0) return null;
         for (let i = 0; i < memberGroups.Count; i++) {
-            keys.push({ 'group_id': {"N": memberGroups.Items[i].group_id.N} });
+            if (memberGroups.Count > 0) keys.push({ 'group_id': {"N": memberGroups.Items[i].group_id.N} });
         }
         const batchGetParams = {
             RequestItems: {
