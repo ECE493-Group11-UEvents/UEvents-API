@@ -59,7 +59,7 @@ class UserModel {
      * @param {Array} roles - An array of roles for the user.
      * @returns {Object} - The newly created user object.
      */
-    static async create( email,first_name, last_name, password, photo, roles = []) {
+    static async create( email,first_name, last_name, password, photo) {
 
         const salt = await bcrypt.genSalt();
         var hash = await bcrypt.hash(password, salt);
@@ -85,7 +85,7 @@ class UserModel {
           "last_name": {"S": last_name},
           "password": {"S": hash},
           "profile_picture": {"S": photo_url},
-          "roles": {"L": []},
+          "is_admin": { "BOOL": false }
         };
     
         await client.putItem({ TableName: tableName, Item: item }).promise();
