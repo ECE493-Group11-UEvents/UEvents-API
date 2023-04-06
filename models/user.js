@@ -59,32 +59,19 @@ class UserModel {
      * @param {Array} roles - An array of roles for the user.
      * @returns {Object} - The newly created user object.
      */
-    static async create( email,first_name, last_name, password, photo) {
+    static async create( email,first_name, last_name, password) {
 
         const salt = await bcrypt.genSalt();
         var hash = await bcrypt.hash(password, salt);
         hash = hash.toString();
 
-        var photo_url = "";
-
-        if (photo){
-            const params = {
-                Bucket: process.env.BUCKET_NAME,
-                Key: uuid.v4() + photo.originalname,
-                Body: photo.buffer,
-                ContentType: photo.mimetype,
-                ACL: 'public-read'
-            };
-            await s3.putObject(params).promise();
-            photo_url = `https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/${params.Key}`;
-        }
 
         const item = {
           "email": {"S": email},
           "first_name": {"S": first_name},
           "last_name": {"S": last_name},
           "password": {"S": hash},
-          "profile_picture": {"S": photo_url},
+          "profile_picture": {"S": DEFAULT_PROFILE_PICTURE},
           "is_admin": { "BOOL": false }
         };
     
