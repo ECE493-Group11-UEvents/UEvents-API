@@ -291,7 +291,7 @@ class EventModel {
                 .then(async (data) => {
                     console.log(data);
                     if (notification) {
-                        return await this.notifyUsersDelete(`UEvents Notification: Event Deleted`, `Event with id ${event.event_name.S} has been deleted.`, event);
+                        return await this.notifyUsersDelete(`UEvents Notification: Event Deleted`, `Event '${event.event_name.S}' has been deleted.`, event);
                     }
                     return data;
                 })
