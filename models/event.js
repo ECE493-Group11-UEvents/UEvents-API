@@ -257,12 +257,10 @@ class EventModel {
                             }
                         });
                         if (changedKeys.length > 0) {
-                            const changedItems = changedKeys.reduce((acc, key) => {
-                                acc[key] = item[key];
-                                return acc;
-                            }, {});
-                            const body = `The following fields have been changed: ${changedKeys.join(', ')}`
-                            this.notifyUsers(id, "Event Updated", body);
+                            const body = changedKeys.map((key) => {
+                                return `${key}: ${oldItem[key].S} -> ${item[key].S}\n`
+                            });
+                            this.notifyUsers(id, `UEvents Notification: ${title}`, body);
                         }
                     }
 
