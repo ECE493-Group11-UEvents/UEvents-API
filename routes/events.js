@@ -104,7 +104,7 @@ if (process.env.NODE_ENV !== 'production') {
         const { event_id } = req.params;
         const { subject, body } = req.body;
         try {
-            EventModel.notifyUsers(event_id, subject, body)
+            EventModel.notifyUsersEdit(event_id, subject, body)
                 .then((result) => {
                     res.send(result);
                 })
