@@ -70,8 +70,8 @@ class Emailer {
                     first_name: userData.first_name,
                     event_name: userData.event_name,
                     body: body,
+                    "subject": subject,
                 },
-                "subject": subject,
             };
         });
 
