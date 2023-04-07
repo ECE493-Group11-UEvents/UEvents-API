@@ -266,7 +266,7 @@ class EventModel {
                                 return `${oldItem[key].S} -> ${item[key].S}<br/>`
                             });
                             if (message) {
-                                body = body + "<br/><br/>Event Coordinator Message: " + message;
+                                body = body + "<br/>Event Coordinator Message: " + message;
                             }
                             return await this.notifyUsersEdit(id, `UEvents Notification: ${title}`, body);
                         }
