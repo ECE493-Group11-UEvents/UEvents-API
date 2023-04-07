@@ -337,7 +337,6 @@ class EventModel {
         if (promises) {
             Emailer.sendEmail(promises, subject, body)
                 .then((res) => {
-                    console.log(res);
                     return res;
                 })
                 .catch((err) => {
@@ -363,7 +362,6 @@ class EventModel {
         if (promises) {
             Emailer.sendEmail(promises, subject, body)
                 .then((res) => {
-                    console.log(res);
                     return res;
                 })
                 .catch((err) => {

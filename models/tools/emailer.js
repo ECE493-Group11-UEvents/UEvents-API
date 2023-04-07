@@ -41,6 +41,7 @@ class Emailer {
 
         try {
             let res = await sgMail.send(msg);
+            console.log(res);
             return res;
         }
         catch(err){
@@ -49,7 +50,7 @@ class Emailer {
         }
     }
 
-    static async sendSingleDecisionEmail(email, first_name, event_name, body, subject){
+    static async sendSingleDecisionEmail(email, first_name, event_name, decision, subject){
         const msg = {
             to: email,
             from: EMAIL_ADDRESS,
@@ -57,13 +58,14 @@ class Emailer {
             dynamic_template_data: {
                 first_name: first_name,
                 event_name: event_name,
-                body: body,
+                decision: decision,
                 subject: subject,
             },
         }
 
         try {
             let res = await sgMail.send(msg);
+            console.log(res);
             return res;
         }
         catch(err){
