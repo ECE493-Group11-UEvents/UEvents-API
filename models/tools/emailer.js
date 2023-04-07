@@ -50,16 +50,17 @@ class Emailer {
         }
     }
 
-    static async sendSingleDecisionEmail(email, first_name, event_name, decision, subject){
+    static async sendSingleDecisionEmail(email, first_name, group_name, decision, subject, body){
         const msg = {
             to: email,
             from: EMAIL_ADDRESS,
             templateId: DECISION_TEMPLATE_ID,
             dynamic_template_data: {
                 first_name: first_name,
-                event_name: event_name,
+                group_name: group_name,
                 decision: decision,
                 subject: subject,
+                body: body,
             },
         }
 
