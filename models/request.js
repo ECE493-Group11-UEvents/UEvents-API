@@ -206,8 +206,8 @@ class RequestModel {
             const req_user = await UserModel.profile(email);
             const res = await Emailer.sendSingleDecisionEmail(
                 email, 
-                req_user.first_name.S, 
-                req.group_name.S, 
+                req_user[0]?.Item?.first_name.S,
+                req?.group_name.S, 
                 decision, 
                 subject
             );
