@@ -190,9 +190,12 @@ class EventModel {
      * @param {string} dateTime 
      * @param {multer} photo 
      * @param {string} link_to_photo
+     * @param {string[]} eventTags
+     * @param {boolean} notification
+     * @param {string} message
      * @returns 
      */
-    static async editEvent( id, title, description, location, dateTime, photo, link_to_photo = null, eventTags = [], notification = false) {
+    static async editEvent( id, title, description, location, dateTime, photo, link_to_photo = null, eventTags = [], notification = false, message) {
         let photo_url = "";
         // If a photo is provided, use that instead of the link to photo.
         if (photo){
@@ -259,9 +262,12 @@ class EventModel {
                         });
 
                         if (changedKeys.length > 0) {
-                            const body = changedKeys.map((key) => {
+                            let body = changedKeys.map((key) => {
                                 return `${oldItem[key].S} -> ${item[key].S}\n`
                             });
+                            if (message) {
+                                body = body + "\nEvent Coordinator Message: " + message;
+                            }
                             return await this.notifyUsersEdit(id, `UEvents Notification: ${title}`, body);
                         }
                     }
@@ -291,7 +297,11 @@ class EventModel {
                 .then(async (data) => {
                     console.log(data);
                     if (notification) {
-                        return await this.notifyUsersDelete(`UEvents Notification: Event Deleted`, `Event '${event.event_name.S}' has been deleted.`, event);
+                        let body = `Event '${event.event_name.S}' has been deleted.`;
+                        if (message) {
+                            body = body + "\nEvent Coordinator Message: " + message;
+                        }
+                        return await this.notifyUsersDelete(`UEvents Notification: Event Deleted`, body, event);
                     }
                     return data;
                 })
