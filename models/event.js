@@ -261,12 +261,12 @@ class EventModel {
                             }
                         });
 
-                        if (changedKeys.length > 0) {
+                        if (changedKeys.length > 0 || message) {
                             let body = changedKeys.map((key) => {
-                                return `${oldItem[key].S} -> ${item[key].S}\n`
+                                return `${oldItem[key].S} -> ${item[key].S}<br/>`
                             });
                             if (message) {
-                                body = body + "\nEvent Coordinator Message: " + message;
+                                body = body + "<br/><br/>Event Coordinator Message: " + message;
                             }
                             return await this.notifyUsersEdit(id, `UEvents Notification: ${title}`, body);
                         }
