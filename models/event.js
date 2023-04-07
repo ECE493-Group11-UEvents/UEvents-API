@@ -284,7 +284,7 @@ class EventModel {
         }
     };
 
-    static async deleteEvent( id, notification = false ) {
+    static async deleteEvent( id, notification = false, message ) {
         const params = {
             TableName: 'Events',
             Key: { event_id:{ N: id } }
