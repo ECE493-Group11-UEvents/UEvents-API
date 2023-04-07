@@ -6,7 +6,6 @@ dotenv.config();
 const EMAIL_ADDRESS = process.env.EMAIL_ADDRESS;
 const EDIT_TEMPLATE_ID = process.env.SENDGRID_EDIT_TEMPLATE_ID;
 const DECISION_TEMPLATE_ID = process.env.SENDGRID_DECISION_TEMPLATE_ID;
-const NOTIFICATION_TEMPLATE_ID = process.env.SENDGRID_NOTIFICATION_TEMPLATE_ID;
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
@@ -34,7 +33,7 @@ class Emailer {
         const msg = {
             personalizations: recipients,
             from: EMAIL_ADDRESS,
-            templateId: notif_msg ? NOTIFICATION_TEMPLATE_ID : EDIT_TEMPLATE_ID
+            templateId: EDIT_TEMPLATE_ID
         }
 
         // console.log(msg);
