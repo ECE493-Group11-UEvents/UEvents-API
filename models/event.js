@@ -4,6 +4,8 @@ const dotenv = require('dotenv');
 const RSVPModel = require('./rsvp');
 const FollowModel = require('./follow');
 const FollowGroupModel = require('./followGroup');
+const UserModel = require('./user');
+const Emailer = require('./tools/emailer');
 const {getNextId} = require('./tools/helper');
 dotenv.config();
 
@@ -91,7 +93,7 @@ class EventModel {
         return item;
     }
 
-    static async getAllEvents( page = 1, limit = 10, following_email, search, filter ) {
+    static async getAllEvents( page = 1, limit = 100, following_email, search, filter ) {
         const params = {
             TableName: "Events",
             Limit: limit,
@@ -188,9 +190,12 @@ class EventModel {
      * @param {string} dateTime 
      * @param {multer} photo 
      * @param {string} link_to_photo
+     * @param {string[]} eventTags
+     * @param {boolean} notification
+     * @param {string} message
      * @returns 
      */
-    static async editEvent( id, title, description, location, dateTime, photo, link_to_photo = null, eventTags = [] ) {
+    static async editEvent( id, title, description, location, dateTime, photo, link_to_photo = null, eventTags = [], notification = false, message) {
         let photo_url = "";
         // If a photo is provided, use that instead of the link to photo.
         if (photo){
@@ -207,8 +212,6 @@ class EventModel {
         else if (link_to_photo.startsWith(`https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/`)) {
             photo_url = link_to_photo;
         }
-
-
 
         const item = {
             "event_date_time": {"S": dateTime},
@@ -239,17 +242,41 @@ class EventModel {
                 ':value5': {"S": photo_url || DEFAULT_EVENT_PICTURE },
                 ':value6': {"SS": typeof eventTags !== 'object' ? JSON.parse(eventTags) : eventTags}
             },
-            ReturnValues: 'UPDATED_NEW'
+            ReturnValues: 'UPDATED_OLD'
         };
 
         try {
             client.updateItem(params).promise()
-                .then((data) => {
-                    console.log(data);
+                .then(async (data) => {
+                    // compare returned old data with new item data and send notification on changes
+                    if (notification) {
+                        // attributes we don't want to send notifications for
+                        const muteAttr = new Set(["event_tags", "event_photo"]);
+
+                        const oldItem = data.Attributes;
+                        const keys = Object.keys(item);
+                        const changedKeys = keys.filter((key) => {
+                            if ((oldItem[key] && item[key]) && !muteAttr.has(key)) {
+                                return oldItem[key].S !== item[key].S;
+                            }
+                        });
+
+                        if (changedKeys.length > 0 || message) {
+                            let body = changedKeys.map((key) => {
+                                return `${oldItem[key].S} -> ${item[key].S}<br/>`
+                            });
+                            if (message) {
+                                body = body + "<br/>Event Coordinator Message: " + message;
+                            }
+                            return await this.notifyUsersEdit(id, `UEvents Notification: ${title}`, body);
+                        }
+                    }
+
                     return item;
                 })
                 .catch((err) => {
-                    return err
+                    console.error(err);
+                    return null;
                 });
         } catch (err) {
             console.error(err);
@@ -257,15 +284,31 @@ class EventModel {
         }
     };
 
-    static async deleteEvent( id ) {
+    static async deleteEvent( id, notification = false, message ) {
         const params = {
             TableName: 'Events',
             Key: { event_id:{ N: id } }
         };
 
+        const event = await this.getEventById(id);
+
         try {
-            const result = await client.deleteItem(params).promise();
-            return result;
+            await client.deleteItem(params).promise()
+                .then(async (data) => {
+                    console.log(data);
+                    if (notification) {
+                        let body = `Event '${event.event_name.S}' has been deleted.`;
+                        if (message) {
+                            body = body + "\nEvent Coordinator Message: " + message;
+                        }
+                        return await this.notifyUsersDelete(`UEvents Notification: Event Deleted`, body, event);
+                    }
+                    return data;
+                })
+                .catch((err) => {
+                    console.error(err);
+                    return null;
+                });
         } catch (err) {
             console.error(err);
             return null;
@@ -286,6 +329,57 @@ class EventModel {
         } while (lastEvaluatedKey && pageCount < pageNumber);
 
         return items.slice(0, pageSize);
+    }
+
+    static async notifyUsersEdit( event_id, subject, body ) {
+        const userRsvps = await RSVPModel.getRSVPsByEventId(event_id);
+        const arr_users = userRsvps.map(async (userRsvp) => {
+            const user = await UserModel.profile(userRsvp.email.S);
+            const event = await EventModel.getEventById(event_id);
+            return {
+                email: userRsvp.email.S,
+                first_name: user[0].Item.first_name.S,
+                event_name: event.event_name.S,
+                body: body
+            }
+        }, []);
+        const promises = await Promise.all(arr_users);
+        if (promises) {
+            Emailer.sendEmail(promises, subject, body)
+                .then((res) => {
+                    return res;
+                })
+                .catch((err) => {
+                    console.error(err);
+                    return err;
+                });
+        }
+        return null;
+    }
+
+    static async notifyUsersDelete( subject, body, event ) {
+        const userRsvps = await RSVPModel.getRSVPsByEventId(event.event_id.N);
+        const arr_users = userRsvps.map(async (userRsvp) => {
+            const user = await UserModel.profile(userRsvp.email.S);
+            return {
+                email: userRsvp.email.S,
+                first_name: user[0].Item.first_name.S,
+                event_name: event.event_name.S,
+                body: body
+            }
+        }, []);
+        const promises = await Promise.all(arr_users);
+        if (promises) {
+            Emailer.sendEmail(promises, subject, body)
+                .then((res) => {
+                    return res;
+                })
+                .catch((err) => {
+                    console.error(err);
+                    return err;
+                });
+        }
+        return null;
     }
 }
 

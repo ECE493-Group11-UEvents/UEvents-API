@@ -62,10 +62,10 @@ router.get('/:event_id', async (req, res) => {
 
 router.post('/edit/:event_id', upload.single('photo'), async (req, res) => {
     const { event_id } = req.params;
-    const { title, description, location, dateTime, photo_url, eventTags } = req.body;
+    const { title, description, location, dateTime, photo_url, eventTags, notification, message } = req.body;
     const photo = req.file;
     try {
-        EventModel.editEvent(event_id, title, description, location, dateTime, photo, photo_url, eventTags)
+        EventModel.editEvent(event_id, title, description, location, dateTime, photo, photo_url, eventTags, notification === 'true' || notification === true ? true : false, message)
             .then((result) => {
                 res.send(result);
             })
@@ -82,8 +82,9 @@ router.post('/edit/:event_id', upload.single('photo'), async (req, res) => {
 
 router.delete('/:event_id', async (req, res) => {
     const { event_id } = req.params;
+    const { notification, message } = req.body;
     try {
-        EventModel.deleteEvent(event_id)
+        EventModel.deleteEvent(event_id, notification === 'true' || notification === true ? true : false, message)
             .then((result) => {
                 res.send(result);
             })
@@ -97,5 +98,26 @@ router.delete('/:event_id', async (req, res) => {
         res.status(500).send('Error deleting event');
     }
 });
+
+if (process.env.NODE_ENV !== 'production') {
+    router.post('/TEST_EMAILER/:event_id', async (req, res) => {
+        const { event_id } = req.params;
+        const { subject, body } = req.body;
+        try {
+            EventModel.notifyUsersEdit(event_id, subject, body)
+                .then((result) => {
+                    res.send(result);
+                })
+                .catch((err) => {
+                    console.error(err);
+                    res.status(500).send('Error sending email');
+                });
+        }
+        catch(err) {
+            console.error(err);
+            res.status(500).send('Error sending email');
+        }
+    });
+}
 
 module.exports = router;

@@ -1,7 +1,9 @@
 const AWS = require('aws-sdk');
 const MemberGroupModel = require('./memberGroup');
 const StudentGroupModel = require('./studentGroup');
-const { getNextId } = require('./tools/helper')
+const Emailer = require('./tools/emailer');
+const { getNextId } = require('./tools/helper');
+const UserModel = require('./user');
 
 AWS.config.update({
     region: process.env.REGION,
@@ -138,6 +140,9 @@ class RequestModel {
 
         try {
             const result = await client.updateItem(params).promise();
+
+            await this.sendDecisionNotification(email, group_id, "rejected", "UEvents Group Request Rejected");
+
             return result.Attributes !== undefined;
         } catch (error) {
             console.error('Error rejecting request:', error);
@@ -185,6 +190,8 @@ class RequestModel {
                 await MemberGroupModel.addGroupMember(group_req.email.S, group_req.group_id.N);
             }
 
+            await this.sendDecisionNotification(email, id, "approved", "UEvents Group Request Approved");
+
             return true;
         }
         catch (err) {
@@ -193,6 +200,24 @@ class RequestModel {
         }
     }
 
+    static async sendDecisionNotification(email, group_id, decision, subject) {
+        try {
+            const req = await this.getRequestByKey(email, group_id);
+            const req_user = await UserModel.profile(email);
+            const res = await Emailer.sendSingleDecisionEmail(
+                email, 
+                req_user[0]?.Item?.first_name.S,
+                req?.group_name.S, 
+                decision, 
+                subject
+            );
+    
+            return res;
+        }
+        catch (err) {
+            console.error(err);
+        }
+    }
 }
 
 module.exports = RequestModel;
