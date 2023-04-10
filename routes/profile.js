@@ -3,8 +3,9 @@ const router = express.Router();
 const UserModel = require('../models/user');
 const EventModel = require('../models/event');
 const FollowModel = require('../models/follow');
-const { isFollowConfirm } = require('../models/follow');
+const multer = require('multer');
 
+const upload = multer();
 // Handle profile requests, returns: user info, requests?, followers, followings, events, request sent?, follow confirm?
 router.get('/:email', async (req, res) => {
 
@@ -20,7 +21,7 @@ router.get('/:email', async (req, res) => {
     const user = await UserModel.profile(email);
 
     // getting the events user has signed up for
-    const events = await EventModel.getEvents(email);
+    const events = await EventModel.getRSVPEventsDetails(email);
 
     // getting the followers of this user
     const followers = await FollowModel.getFollowers(email);
@@ -134,5 +135,46 @@ router.delete('/unfollow', async(req, res) => {
     }
 });
 
+router.put('/edit', async (req, res) => {
+    
+    const {email, first_name, last_name} = req.body;
+
+    const result = await UserModel.editProfile(email, first_name, last_name);
+
+    res.send(result);
+    
+});
+
+router.put('/edit_picture', upload.single('photo'), async (req, res) => {
+
+    const {email} = req.body;
+
+    const photo = req.file;
+
+    const result = await UserModel.editProfilePicture(email, photo);
+
+    if(result){
+        res.send(result);
+    }
+    else{
+        res.status(500).send("Error");
+    }
+    
+});
+
+/**
+ * Route for getting all users based on search query
+ */
+router.get('/', async (req, res) => {
+    const {search} = req.query;
+    try {
+        let users = await UserModel.getAllUsers(search);
+        res.send(users);
+    }
+    catch(err) {
+        console.error(err);
+        res.status(500).send('Error');
+    }
+});
 
 module.exports = router;
