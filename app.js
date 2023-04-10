@@ -35,6 +35,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+// Serve the static files from the React app
+app.use(express.static(path.join(__dirname, 'build')));
 
 app.use(API_PREFIX + '/', indexRouter);
 app.use(API_PREFIX + '/users', basicAuth, usersRouter);
@@ -50,9 +52,9 @@ app.use(API_PREFIX + '/memberGroups', memberGroupRoute);
 app.use(API_PREFIX + '/requests', requestsRoute);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
+// app.use(function(req, res, next) {
+//   next(createError(404));
+// });
 
 
 // error handler
@@ -64,6 +66,11 @@ app.use(function(err, req, res, next) {
   // render the error page
   res.status(err.status || 500);
   res.render('error');
+});
+
+// Handles any requests that don't match the ones above
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
 module.exports = app;
