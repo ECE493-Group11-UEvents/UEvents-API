@@ -1,3 +1,9 @@
+/**
+ * signup.js
+ * Route that facilitates user registration requests
+ * Functional Requirements: REQ 1
+ */
+
 const express = require('express');
 const router = express.Router();
 const UserModel = require('../models/user');

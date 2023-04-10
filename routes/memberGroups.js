@@ -1,3 +1,9 @@
+/**
+ * memberGroups.js
+ * Routes used to facilitate fetching and deleting EC members of student groups
+ * Functional Requirements: REQ 13
+ */
+
 const express = require('express');
 const router = express.Router();
 const MemberGroupModel = require('../models/memberGroup');
