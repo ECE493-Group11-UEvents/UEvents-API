@@ -22,6 +22,8 @@ const test_event = {
     "email": "test"
 }
 
+let event_id;
+
 describe("Events Endpoint", () => {
     it("Should return 200 and create a new event", (done) => {
         chai
@@ -83,27 +85,80 @@ describe("Events Endpoint", () => {
             })
             .end((err, res) => {
                 expect(res).to.have.status(200);
+                chai
+                    .request(app)
+                    .get(`/api/events/${event_id}`)
+                    .end((err, getRes) => {
+                        expect(getRes).to.have.status(200);
+                        expect(getRes.body).to.have.property("event_name");
+                        expect(getRes.body.event_name.S).to.equal("test2");
+                        expect(getRes.body).to.have.property("event_description");
+                        expect(getRes.body).to.have.property("event_date_time");
+                        expect(getRes.body).to.have.property("event_location");
+                        expect(getRes.body).to.have.property("event_coordinator_group_id");
+                        expect(getRes.body).to.have.property("event_photo");
+                        expect(getRes.body).to.have.property("event_tags");
+                        expect(getRes.body).to.have.property("event_coordinator_email");
+                    });
+                done();
             });
+    });
+});
 
+describe("Events RSVP Endpoint", () => {
+    it("Should return 200 and create a new RSVP", (done) => {
         chai
             .request(app)
-            .get(`/api/events/${event_id}`)
+            .post(`/api/events/RSVP/${event_id}`)
+            .send({
+                email: "test"
+            })
             .end((err, res) => {
                 expect(res).to.have.status(200);
-                expect(res.body).to.have.property("event_name");
-                expect(res.body.event_name.S).to.equal("test2");
-                expect(res.body).to.have.property("event_description");
-                expect(res.body).to.have.property("event_date_time");
-                expect(res.body).to.have.property("event_location");
-                expect(res.body).to.have.property("event_coordinator_group_id");
-                expect(res.body).to.have.property("event_photo");
-                expect(res.body).to.have.property("event_tags");
-                expect(res.body).to.have.property("event_coordinator_email");
+
+                chai
+                    .request(app)
+                    .get(`/api/events/RSVP/${event_id}/test`)
+                    .end((err, res) => {
+                        expect(res).to.have.status(200);
+                        expect(res.body).to.be.true;
+                        done();
+                    });
+            });
+    });
+
+    it("Should get RSVPs of the user", (done) => {
+        chai
+            .request(app)
+            .get(`/api/events/RSVP/email/test`)
+            .end((err, res) => {
+                expect(res).to.have.status(200);
+                expect(res.body).to.be.a("array");
                 done();
             });
     });
 
-    it("should return 200 and delete the event", (done) => {
+    it("Should return 200 and delete the RSVP", (done) => {
+        chai
+            .request(app)
+            .delete(`/api/events/RSVP/${event_id}/test`)
+            .end((err, res) => {
+                expect(res).to.have.status(200);
+
+                chai
+                    .request(app)
+                    .get(`/api/events/RSVP/${event_id}/test`)
+                    .end((err, res) => {
+                        expect(res).to.have.status(200);
+                        expect(res.body).to.be.false;
+
+                    });
+
+                done();
+            });
+    });
+
+    after((done) => {
         chai
             .request(app)
             .delete(`/api/events/${event_id}`)
@@ -113,4 +168,5 @@ describe("Events Endpoint", () => {
             });
     });
 });
+
 

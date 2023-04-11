@@ -7,7 +7,7 @@ router.post('/', async (req, res) => {
 
     const studentGroup = await RequestModel.requestStudentGroup(email, description, group_name, group_id);
     if (studentGroup) {
-        res.send(studentGroup.Item);
+        res.send(studentGroup);
     } else {
         res.send('Failed to send request student group');
     }

@@ -14,10 +14,10 @@ chai.use(chaiHttp);
 
 describe('Student Group Endpoints', () => {
     let test_group = {
-        "group_id": "100000",
-        "group_name": "test group",
-        "description": "test description",
-        "photo_url": "test photo url"
+        "group_id": "19",
+        "group_name": "Steven's Posse",
+        "description": "We are a group of friends who like to hang out and have fun",
+        "photo_url": "https://uevents-s3.s3.us-east-2.amazonaws.com/default_user_photo.jpg"
     };
 
     it('Should return 200 and edit a new student group', (done) => {

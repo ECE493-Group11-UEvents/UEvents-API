@@ -13,10 +13,9 @@ AWS.config.update({
 chai.use(chaiHttp);
 
 const test_request = {
-    "email": "test2",
+    "email": "test",
     "description": "test",
     "group_name": "test",
-    "group_id": "35",
 }
 
 describe('Request Endpoint', () => {
@@ -25,22 +24,28 @@ describe('Request Endpoint', () => {
             .post('/api/requests')
             .send(test_request)
             .end((err, res) => {
+                console.log(res.body);
                 expect(res).to.have.status(200);
+                expect(res.body).to.have.property('email');
+                expect(res.body).to.have.property('description');
+                expect(res.body).to.have.property('group_name');
+                expect(res.body).to.have.property('group_id');
+                test_request.group_id = res.body.group_id;
                 done();
             });
     });
 
     after((done) => {
         // delete test request
-        const dynamoDb = new AWS.DynamoDB.DocumentClient();
+        const client = new AWS.DynamoDB();
         const params = {
             TableName: "Requests",
             Key: {
                 "email": {"S": test_request.email},
-                "group_id": {"S": test_request.group_id},
+                "group_id": {"N": test_request.group_id},
             },
         };
-        dynamoDb.delete(params, (err, data) => {
+        client.deleteItem(params, (err, data) => {
             if (err) {
                 console.error("Unable to delete item. Error JSON:", JSON.stringify(err, null, 2));
             } else {

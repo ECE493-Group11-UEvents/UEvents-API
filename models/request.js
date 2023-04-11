@@ -86,8 +86,9 @@ class RequestModel {
                 }
             };
             
-            const result = await client.putItem(params).promise();
-            return result;
+            let res = await client.putItem(params).promise();
+
+            return groupDetails;
         }
         catch (err) {
             console.error(err);
