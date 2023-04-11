@@ -89,7 +89,6 @@ describe('Change Password Endpoint', () => {
                 "password": "new_password"
             })
             .end((err, res) => {
-                console.log(res)
                 expect(res).to.have.status(200);
                 done();
             });
