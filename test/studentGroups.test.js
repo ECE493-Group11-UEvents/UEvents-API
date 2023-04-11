@@ -12,13 +12,27 @@ AWS.config.update({
 
 chai.use(chaiHttp);
 
+const test_group = {
+    "group_id": "10000",
+    "group_name": "Biochemistry Club",
+    "description": "We are the Biochem club! We do cool stuff",
+    "photo_url": "https://uevents-s3.s3.us-east-2.amazonaws.com/default_user_photo.jpg"
+};
+
 describe('Student Group Endpoints', () => {
-    let test_group = {
-        "group_id": "19",
-        "group_name": "Steven's Posse",
-        "description": "We are a group of friends who like to hang out and have fun",
-        "photo_url": "https://uevents-s3.s3.us-east-2.amazonaws.com/default_user_photo.jpg"
-    };
+    before(async () => {
+        // create test student group
+        const client = new AWS.DynamoDB();
+        await client.putItem({
+            TableName: "StudentGroups",
+            Item: {
+                "group_id": {"N": test_group.group_id},
+                "group_name": {"S": test_group.group_name},
+                "description": {"S": test_group.description},
+                "group_photo": {"S": test_group.photo_url},
+            },            
+        }).promise();
+    });
 
     it('Should return 200 and edit a new student group', (done) => {
         chai.request(app)
@@ -66,5 +80,24 @@ describe('Student Group Endpoints', () => {
                 expect(res.body.Items[0]).to.have.property('group_photo');
                 done();
             });
+    });
+
+    after((done) => {
+        // delete test student group
+        const client = new AWS.DynamoDB();
+        const params = {
+            TableName: "StudentGroups",
+            Key: {
+                "group_id": {"N": test_group.group_id},
+            },
+        };
+        client.deleteItem(params, (err, data) => {
+            if (err) {
+                console.error("Unable to delete item. Error JSON:", JSON.stringify(err, null, 2));
+            } else {
+                console.log("DeleteItem succeeded:", JSON.stringify(data, null, 2));
+            }
+        });
+        done();
     });
 });
