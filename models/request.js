@@ -122,7 +122,7 @@ class RequestModel {
      * @param {number} group_id - The ID of the group the requester is requesting to join.
      * @returns {Promise<boolean>} - A Promise that resolves to a boolean indicating whether the request was successfully rejected.
      */
-    static async rejectRequest(email, group_id){
+    static async rejectRequest(email, group_id, notification = true){
         var params = {
             TableName: tableName,
             Key: {
@@ -142,7 +142,7 @@ class RequestModel {
         try {
             const result = await client.updateItem(params).promise();
 
-            await this.sendDecisionNotification(email, group_id, "rejected", "UEvents Group Request Rejected");
+            if (notification === true) await this.sendDecisionNotification(email, group_id, "rejected", "UEvents Group Request Rejected");
 
             return result.Attributes !== undefined;
         } catch (error) {
@@ -157,7 +157,7 @@ class RequestModel {
      * @param {string} id - The ID of the group the requester is requesting to join.
      * @returns {Promise<boolean>} - A Promise that resolves to a boolean indicating whether the request was successfully accepted and the requester added as a member of the group.
      */
-    static async acceptRequest(email, id){
+    static async acceptRequest(email, id, notification = true){
         try {
             // get the request
             const group_req = await this.getRequestByKey(email, id);
@@ -191,7 +191,7 @@ class RequestModel {
                 await MemberGroupModel.addGroupMember(group_req.email.S, group_req.group_id.N);
             }
 
-            await this.sendDecisionNotification(email, id, "approved", "UEvents Group Request Approved");
+            if (notification === true) await this.sendDecisionNotification(email, id, "approved", "UEvents Group Request Approved");
 
             return true;
         }

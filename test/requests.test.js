@@ -35,6 +35,62 @@ describe('Request Endpoint', () => {
             });
     });
 
+    it("Approve the request and return 200", (done) => {
+        chai.request(app)
+            .put(`/api/requests/approve`)
+            .send({
+                "group_id": test_request.group_id,
+                "email": test_request.email,
+                "notification": false,
+            })
+            .end((err, res) => {
+                expect(res).to.have.status(200);
+                const client = new AWS.DynamoDB();
+                const params = {
+                    TableName: "Requests",
+                    Key: {
+                        "email": {"S": test_request.email},
+                        "group_id": {"N": test_request.group_id},
+                    },
+                };
+                client.getItem(params, (err, data) => {
+                    if (err) {
+                        console.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
+                    }
+                    expect(data.Item.decision?.S).to.equal("approved");
+                    done();
+                });
+            });
+    });
+
+    it("Reject the request and return 200", (done) => {
+        chai.request(app)
+            .put(`/api/requests/reject`)
+            .send({
+                "group_id": test_request.group_id,
+                "email": test_request.email,
+                "notification": false,
+            })
+            .end((err, res) => {
+                expect(res).to.have.status(200);
+                const client = new AWS.DynamoDB();
+                const params = {
+                    TableName: "Requests",
+                    Key: {
+                        "email": {"S": test_request.email},
+                        "group_id": {"N": test_request.group_id},
+                    },
+                };
+                client.getItem(params, (err, data) => {
+                    if (err) {
+                        console.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
+                    }
+                    expect(data.Item.decision?.S).to.equal("rejected");
+                    done();
+                });
+            });
+    });
+
     after((done) => {
         // delete test request
         const client = new AWS.DynamoDB();
