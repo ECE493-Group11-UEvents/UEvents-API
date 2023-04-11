@@ -37,9 +37,20 @@ describe('Student Group Endpoints', () => {
     it('Should return 200 and edit a new student group', (done) => {
         chai.request(app)
             .post(`/api/studentGroups/edit/${test_group.group_id}`)
-            .send(test_group)
+            .send({
+                ...test_group,
+                group_name: "Chemistry Club",
+            })
             .end((err, res) => {
                 expect(res).to.have.status(200);
+                chai
+                    .request(app)
+                    .get(`/api/studentGroups/${test_group.group_id}`)
+                    .end((err, res) => {
+                        expect(res).to.have.status(200);
+                        expect(res.body).to.have.property('group_name');
+                        expect(res.body.group_name.S).to.equal("Chemistry Club");
+                    });
                 done();
             });
     });
