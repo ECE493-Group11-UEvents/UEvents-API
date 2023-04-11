@@ -77,6 +77,52 @@ describe('Login Endpoint', () => {
                 done();
             });
     });
+});
+
+describe('Change Password Endpoint', () => {
+        
+    it('Should return 200 and change a user\'s password', (done) => {
+        chai.request(app)
+            .put(`/api/change_password/${test_user.email}`)
+            .auth(test_user.email, test_user.password, { type: 'basic' })
+            .send({
+                "password": "new_password"
+            })
+            .end((err, res) => {
+                console.log(res)
+                expect(res).to.have.status(200);
+                done();
+            });
+    });
+
+    it('Should return 200 and login a user', (done) => {
+        chai.request(app)
+            .post('/api/login')
+            .send({
+                "email": test_user.email,
+                "password": "new_password"
+            })
+            .end((err, res) => {
+                expect(res).to.have.status(200);
+                expect(res.body).to.have.property('email');
+                expect(res.body).to.have.property('first_name');
+                expect(res.body).to.have.property('last_name');
+                expect(res.body).to.not.have.property('password');
+                done();
+            });
+    });
+
+    it('Should return 401 and not change a user\'s password', (done) => {
+        chai.request(app)
+        .post(`/api/change_password/random_user_not_real`)
+        .send({
+            "password": "new_password"
+        })
+        .end((err, res) => {
+            expect(res).to.have.status(401);
+            done();
+        });
+    });
 
     // cleanup test user from database
     after((done) => {
