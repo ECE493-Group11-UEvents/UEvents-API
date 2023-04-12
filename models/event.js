@@ -106,6 +106,7 @@ class EventModel {
                 const followers = await FollowModel.getFollowings(following_email);
                 // get events RSVPed by following users
                 const followingUsersEvents = await followers.Items.reduce(async (acc, follow) => {
+                    acc = await acc;
                     const events = await RSVPModel.getRSVPsByEmail(follow.followee_email.S);
                     return [...acc, ...events];
                 }, []);
