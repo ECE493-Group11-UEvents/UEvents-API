@@ -10,7 +10,7 @@ const FollowGroupModel = require('../models/followGroup');
 
 router.post('/:group_id/follow', async (req, res) => {
     const { group_id } = req.params;
-    const {follower_email} = req.body
+    const {follower_email} = req.body;
 
     const isFollowing = await FollowGroupModel.isFollowing(group_id, follower_email);
 

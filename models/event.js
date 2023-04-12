@@ -209,7 +209,7 @@ class EventModel {
             await s3.putObject(params).promise();
             photo_url = `https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/${params.Key}`;
         }
-        else if (link_to_photo.startsWith(`https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/`)) {
+        else if (link_to_photo && link_to_photo.startsWith(`https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/`)) {
             photo_url = link_to_photo;
         }
 

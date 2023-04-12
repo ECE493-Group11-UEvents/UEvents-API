@@ -12,6 +12,7 @@ const FollowModel = require('../models/follow');
 const multer = require('multer');
 
 const upload = multer();
+
 // Handle profile requests, returns: user info, requests?, followers, followings, events, request sent?, follow confirm?
 router.get('/:email', async (req, res) => {
 

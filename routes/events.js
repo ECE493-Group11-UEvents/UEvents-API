@@ -71,6 +71,7 @@ router.post('/edit/:event_id', upload.single('photo'), async (req, res) => {
     const { title, description, location, dateTime, photo_url, eventTags, notification, message } = req.body;
     const photo = req.file;
     try {
+        console.log(req.body);
         EventModel.editEvent(event_id, title, description, location, dateTime, photo, photo_url, eventTags, notification === 'true' || notification === true ? true : false, message)
             .then((result) => {
                 res.send(result);

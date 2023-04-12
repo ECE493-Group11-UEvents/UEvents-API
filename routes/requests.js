@@ -13,7 +13,7 @@ router.post('/', async (req, res) => {
 
     const studentGroup = await RequestModel.requestStudentGroup(email, description, group_name, group_id);
     if (studentGroup) {
-        res.send(studentGroup.Item);
+        res.send(studentGroup);
     } else {
         res.send('Failed to send request student group');
     }
@@ -32,9 +32,9 @@ router.get('/:status', async (req, res) => {
 });
 
 router.put('/approve', async (req, res) => {
-    const { email, group_id } = req.body;
+    const { email, group_id, notification } = req.body;
 
-    const result = await RequestModel.acceptRequest(email, typeof group_id === 'number' ? parseInt(group_id) : group_id);
+    const result = await RequestModel.acceptRequest(email, typeof group_id === 'number' ? parseInt(group_id) : group_id, notification);
 
     if (result) {
         res.send("Successfuly approved the request");
@@ -44,9 +44,9 @@ router.put('/approve', async (req, res) => {
 });
 
 router.put('/reject', async (req, res) => {
-    const {email, group_id} = req.body;
+    const { email, group_id, notification } = req.body;
 
-    const result = await RequestModel.rejectRequest(email, group_id);
+    const result = await RequestModel.rejectRequest(email, group_id, notification);
     if (result) {
         res.send("Successfuly rejected the request");
     } else {

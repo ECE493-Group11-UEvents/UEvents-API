@@ -18,7 +18,6 @@ const basicAuth = require('./middleware/BasicAuth');
 const cors = require('cors');
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
 
 var app = express();
 
@@ -39,7 +38,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'build')));
 
 app.use(API_PREFIX + '/', indexRouter);
-app.use(API_PREFIX + '/users', basicAuth, usersRouter);
 app.use(API_PREFIX + '/signup', signupRoute);
 app.use(API_PREFIX + '/login', loginRoute);
 app.use(API_PREFIX + '/change_password', basicAuth, changePasswordRoute);
