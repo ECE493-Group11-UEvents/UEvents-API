@@ -108,7 +108,7 @@ describe('Student Group Endpoints', () => {
             } else {
                 console.log("DeleteItem succeeded:", JSON.stringify(data, null, 2));
             }
+            done();
         });
-        done();
     });
 });

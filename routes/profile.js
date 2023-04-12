@@ -5,16 +5,7 @@ const EventModel = require('../models/event');
 const FollowModel = require('../models/follow');
 const multer = require('multer');
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'test/')
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname)
-  }
-});
-
-const upload = multer({ storage: storage });
+const upload = multer();
 
 // Handle profile requests, returns: user info, requests?, followers, followings, events, request sent?, follow confirm?
 router.get('/:email', async (req, res) => {
