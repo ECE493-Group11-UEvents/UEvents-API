@@ -1,3 +1,9 @@
+/**
+ * profile.js
+ * Routes used to facilitate fetching profile data for users, handling follow requests, editing profile data
+ * Functional Requirements: REQ 4, 5, 6, 7, 8, 24
+ */
+
 const express = require('express');
 const router = express.Router();
 const UserModel = require('../models/user');

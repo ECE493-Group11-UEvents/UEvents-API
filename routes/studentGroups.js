@@ -1,3 +1,9 @@
+/**
+ * studentGroups.js
+ * Routes that facilitate fetching student group data and EC edit student groups
+ * Functional Requirements: REQ 24, 26
+ */
+
 const express = require('express');
 const router = express.Router();
 const StudentGroupModel = require('../models/studentGroup');

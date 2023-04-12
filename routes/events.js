@@ -1,3 +1,9 @@
+/**
+ * events.js
+ * Routes used to facilitate event creation, fetching, editing, deletion, and notifications
+ * Functional Requirements: REQ 14, 15, 16, 17, 18, 21, 22, 23, 24
+ */
+
 var express = require('express');
 var router = express.Router();
 const EventModel = require('../models/event');

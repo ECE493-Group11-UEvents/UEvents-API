@@ -1,3 +1,9 @@
+/**
+ * login.js
+ * Route used to authenticate a user.
+ * Functional Requirements: REQ 2
+ */
+
 const express = require('express');
 const router = express.Router();
 const UserModel = require('../models/user');

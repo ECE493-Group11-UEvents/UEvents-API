@@ -1,3 +1,9 @@
+/**
+ * followGroup.js
+ * Routes used to facilitate student group followers and fetching the groups a user follows
+ * Functional Requirements: REQ 19
+ */
+
 const express = require('express');
 const router = express.Router();
 const FollowGroupModel = require('../models/followGroup');

@@ -1,3 +1,9 @@
+/**
+ * requests.js
+ * Routes used to facilitate the handling of EC student group requests by admins
+ * Functional Requirements: REQ 9, 10, 11, 12
+ */
+
 const express = require('express');
 const router = express.Router();
 const RequestModel = require('../models/request');

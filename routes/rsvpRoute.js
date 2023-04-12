@@ -1,3 +1,9 @@
+/**
+ * rsvpRoute.js
+ * Routes used to facilitate rsvps to events by users and fetching rsvps for an event.
+ * Functional Requirements: REQ 20
+ */
+
 var express = require('express');
 var router = express.Router();
 

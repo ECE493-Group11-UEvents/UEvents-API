@@ -1,3 +1,10 @@
+/**
+ * change_password.js
+ * Route used to facilitate change password requests by users.
+ * Functional Requirements: REQ 3
+ * 
+ */
+
 const express = require('express');
 const router = express.Router();
 const UserModel = require('../models/user');
