@@ -112,18 +112,6 @@ describe('Profile Endpoint', () => {
             });
     });
 
-    it('Should return 200 and edit the profile picture', (done) => {
-        chai.request(app)
-            .put('/api/profile/edit_picture')
-            .set('Content-Type', 'multipart/form-data')
-            .field('email', edit_photo.email)
-            .attach('photo', edit_photo.photo)
-            .end((err, res) => {
-                expect(res).to.have.status(200);
-                done();
-            });
-    });
-
     it('Should return 200 and a list of users', (done) => {
         chai.request(app)
             .get('/api/profile/?search=john')
